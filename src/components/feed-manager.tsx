@@ -2,22 +2,525 @@
 
 import { useActionState, useState } from "react";
 import { AlertTriangle, Check, PackagePlus, Plus, X } from "lucide-react";
-import type { Batch, Farm, FeedStock, FeedTransactionRecord } from "@/domain/types";
-import { feedProductAction, feedTransactionAction } from "@/app/feed/actions";
-import { Badge, Button, Card, EmptyState, FormField, SectionHeading } from "@/components/ui";
+import type {
+  Batch,
+  Farm,
+  FeedStock,
+  FeedTransactionRecord,
+} from "@/domain/types";
+import {
+  feedProductAction,
+  feedTransactionAction,
+} from "@/app/feed/actions";
+import {
+  Badge,
+  Button,
+  Card,
+  EmptyState,
+  FormField,
+  SectionHeading,
+} from "@/components/ui";
 
 const empty = { ok: false, message: "" };
-type Product = { id: string; name: string; type: string; lowStockThreshold: number };
-type Supplier = { id: string; name: string };
-function Feedback({ state }: { state: { ok: boolean; message: string } }) { return state.message ? <div className={`form-feedback ${state.ok ? "feedback-success" : "feedback-error"}`} role="status">{state.ok ? <Check size={15} /> : <X size={15} />}{state.message}</div> : null; }
 
-function FeedTransactionForm({ products, suppliers, batches, onClose }: { products: Product[]; suppliers: Supplier[]; batches: Batch[]; onClose: () => void }) {
-  const [state, action, pending] = useActionState(feedTransactionAction, empty);
-  return <Card className="phase4-form"><div className="form-card-heading"><div><p className="eyebrow">Inventory ledger</p><h2>Record feed movement</h2><p>Purchases add stock; consumption reduces it.</p></div><button className="icon-button" onClick={onClose} aria-label="Close feed transaction form"><X size={18} /></button></div><Feedback state={state} /><form action={action} className="batch-form"><div className="form-grid"><FormField label="Transaction type"><select name="type" defaultValue="PURCHASE"><option value="PURCHASE">Purchase</option><option value="CONSUMPTION">Consumption</option><option value="ADJUSTMENT">Adjustment</option></select></FormField><FormField label="Feed product"><select name="productId">{products.map((product) => <option key={product.id} value={product.id}>{product.name} · {product.type}</option>)}</select></FormField><FormField label="Quantity"><input name="quantity" type="number" min="0.001" step="0.001" required placeholder="0" /></FormField><FormField label="Unit"><input name="unit" defaultValue="kg" required /></FormField><FormField label="Date"><input name="date" type="date" defaultValue="2026-09-09" required /></FormField><FormField label="Supplier"><select name="supplierId"><option value="">No supplier</option>{suppliers.map((supplier) => <option key={supplier.id} value={supplier.id}>{supplier.name}</option>)}</select></FormField><FormField label="Batch"><select name="batchId"><option value="">Farm-wide</option>{batches.map((batch) => <option key={batch.id} value={batch.id}>{batch.code}</option>)}</select></FormField><FormField label="Unit price"><input name="unitPrice" type="number" min="0" step="0.01" placeholder="Optional" /></FormField></div><FormField label="Reference / reason"><textarea name="notes" rows={3} placeholder="Supplier reference, stock count reason, or usage note" /></FormField><div className="form-actions"><button className="button button-primary" disabled={pending}>{pending ? "Saving..." : "Record movement"}</button><Button type="button" variant="secondary" onClick={onClose}>Cancel</Button></div></form></Card>;
+type Product = {
+  id: string;
+  name: string;
+  type: string;
+  lowStockThreshold: number;
+};
+
+type Supplier = {
+  id: string;
+  name: string;
+};
+
+function Feedback({
+  state,
+}: {
+  state: { ok: boolean; message: string };
+}) {
+  return state.message ? (
+    <div
+      className={`form-feedback ${
+        state.ok ? "feedback-success" : "feedback-error"
+      }`}
+      role="status"
+    >
+      {state.ok ? <Check size={15} /> : <X size={15} />}
+      {state.message}
+    </div>
+  ) : null;
 }
 
-export function FeedManager({ stock, transactions, products, suppliers, batches, summary }: { farm: Farm; stock: FeedStock[]; transactions: FeedTransactionRecord[]; products: Product[]; suppliers: Supplier[]; batches: Batch[]; summary: { totalRemainingKg: number; lowStockCount: number } }) {
-  const [formOpen, setFormOpen] = useState(false); const [productForm, setProductForm] = useState(false);
-  const [productState, productAction, productPending] = useActionState(feedProductAction, empty);
-  return <><div className="page-heading"><div><p className="eyebrow">Inventory control</p><h1>Feed management</h1><p className="heading-subtitle">Stock is calculated from every purchase, usage, and adjustment.</p></div><div className="heading-actions"><Button variant="secondary" onClick={() => setProductForm(true)}><Plus size={16} /> New product</Button><Button onClick={() => setFormOpen(true)}><PackagePlus size={17} /> Record movement</Button></div></div><div className="batch-summary-grid feed-summary"><Card><span>Total feed remaining</span><strong>{summary.totalRemainingKg.toLocaleString()} <small>kg</small></strong><small>{summary.lowStockCount} low-stock products</small></Card>{stock.map((item) => <Card key={item.id}><span>{item.type} feed</span><strong>{item.remainingKg.toLocaleString()} <small>kg</small></strong><small className={item.remainingKg <= item.thresholdKg ? "metric-risk" : ""}>{item.remainingKg <= item.thresholdKg ? "Low stock" : "Good stock"}</small></Card>)}</div>{productForm && <Card className="phase4-form"><div className="form-card-heading"><div><p className="eyebrow">Inventory setup</p><h2>New feed product</h2></div><button className="icon-button" onClick={() => setProductForm(false)} aria-label="Close product form"><X size={18} /></button></div><Feedback state={productState} /><form action={productAction} className="batch-form"><div className="form-grid"><FormField label="Product name"><input name="name" placeholder="e.g. Kuku Starter" required /></FormField><FormField label="Feed type"><select name="type"><option value="STARTER">Starter</option><option value="GROWER">Grower</option><option value="FINISHER">Finisher</option></select></FormField><FormField label="Low-stock threshold (kg)"><input name="lowStockThreshold" type="number" min="0" step="0.001" required /></FormField></div><div className="form-actions"><button className="button button-primary" disabled={productPending}>{productPending ? "Saving..." : "Create product"}</button><Button type="button" variant="secondary" onClick={() => setProductForm(false)}>Cancel</Button></div></form></Card>}{formOpen && <FeedTransactionForm products={products} suppliers={suppliers} batches={batches} onClose={() => setFormOpen(false)} />}<div className="feed-layout"><Card><SectionHeading eyebrow="Current inventory" title="Feed stock" />{stock.length === 0 ? <EmptyState title="No feed products" message="Create a feed product to begin tracking stock." /> : <div className="feed-stock-list">{stock.map((item) => { const low = item.remainingKg <= item.thresholdKg; const percent = item.purchasedKg ? Math.max(0, Math.min(100, item.remainingKg / item.purchasedKg * 100)) : 0; return <div className="feed-stock-row" key={item.id}><div className="feed-stock-name"><div className="feed-product-icon"><PackagePlus size={16} /></div><div><strong>{item.type} feed</strong><span>{item.productName}</span></div></div><div className="feed-stock-number"><strong>{item.remainingKg.toLocaleString()} kg</strong><small>{low ? <><AlertTriangle size={12} /> Low stock</> : "Good"}</small></div><div className="progress-track"><span className={low ? "low" : ""} style={{ width: `${percent}%` }} /></div></div>; })}</div>}</Card><Card><SectionHeading eyebrow="Ledger" title="Transaction history" /><div className="feed-ledger">{transactions.length === 0 ? <EmptyState title="No transactions" message="Feed purchases and usage will appear here." /> : transactions.map((item) => <div className="feed-ledger-row" key={item.id}><div><strong>{item.productName}</strong><span>{item.date} <i /> {item.notes || item.type.toLowerCase()}</span></div><Badge tone={item.type === "PURCHASE" ? "green" : item.type === "CONSUMPTION" ? "amber" : "neutral"}>{item.type}</Badge><strong className={item.type === "CONSUMPTION" ? "metric-risk" : ""}>{item.type === "CONSUMPTION" ? "-" : "+"}{item.quantity} {item.unit}</strong></div>)}</div></Card></div></>;
+function FeedTransactionForm({
+  products,
+  suppliers,
+  batches,
+  onClose,
+}: {
+  products: Product[];
+  suppliers: Supplier[];
+  batches: Batch[];
+  onClose: () => void;
+}) {
+  const [state, action, pending] = useActionState(
+    feedTransactionAction,
+    empty
+  );
+
+  const [transactionType, setTransactionType] = useState("PURCHASE");
+
+  return (
+    <Card className="phase4-form">
+      <div className="form-card-heading">
+        <div>
+          <p className="eyebrow">Inventory ledger</p>
+          <h2>Record feed movement</h2>
+          <p>Purchases add stock; consumption reduces it.</p>
+        </div>
+
+        <button
+          className="icon-button"
+          onClick={onClose}
+          aria-label="Close feed transaction form"
+        >
+          <X size={18} />
+        </button>
+      </div>
+
+      <Feedback state={state} />
+
+      <form action={action} className="batch-form">
+        <div className="form-grid">
+          <FormField label="Transaction type">
+            <select
+              name="type"
+              value={transactionType}
+              onChange={(event) =>
+                setTransactionType(event.target.value)
+              }
+            >
+              <option value="PURCHASE">Purchase</option>
+              <option value="CONSUMPTION">Consumption</option>
+              <option value="ADJUSTMENT">Adjustment</option>
+            </select>
+          </FormField>
+
+          <FormField label="Feed product">
+            <select name="productId" required>
+              {products.map((product) => (
+                <option key={product.id} value={product.id}>
+                  {product.name} · {product.type}
+                </option>
+              ))}
+            </select>
+          </FormField>
+
+          <FormField label="Quantity">
+            <input
+              name="quantity"
+              type="number"
+              min="0.001"
+              step="0.001"
+              required
+              placeholder="0"
+            />
+          </FormField>
+
+          <FormField label="Unit">
+            <input
+              name="unit"
+              defaultValue="kg"
+              required
+            />
+          </FormField>
+
+          <FormField label="Date">
+            <input
+              name="date"
+              type="date"
+              defaultValue="2026-09-11"
+              required
+            />
+          </FormField>
+
+          <FormField label="Supplier">
+            <select name="supplierId">
+              <option value="">No supplier</option>
+
+              {suppliers.map((supplier) => (
+                <option key={supplier.id} value={supplier.id}>
+                  {supplier.name}
+                </option>
+              ))}
+            </select>
+          </FormField>
+
+          <FormField label="Batch">
+            <select name="batchId">
+              <option value="">Farm-wide</option>
+
+              {batches.map((batch) => (
+                <option key={batch.id} value={batch.id}>
+                  {batch.code}
+                </option>
+              ))}
+            </select>
+          </FormField>
+
+          <FormField label="Unit price">
+            <input
+              name="unitPrice"
+              type="number"
+              min="0"
+              step="0.01"
+              placeholder={
+                transactionType === "PURCHASE"
+                  ? "e.g. 1850"
+                  : "Optional"
+              }
+              required={transactionType === "PURCHASE"}
+            />
+          </FormField>
+        </div>
+
+        <FormField label="Reference / reason">
+          <textarea
+            name="notes"
+            rows={3}
+            placeholder="Supplier reference, stock count reason, or usage note"
+          />
+        </FormField>
+
+        <div className="form-actions">
+          <button
+            className="button button-primary"
+            disabled={pending}
+          >
+            {pending ? "Saving..." : "Record movement"}
+          </button>
+
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={onClose}
+          >
+            Cancel
+          </Button>
+        </div>
+      </form>
+    </Card>
+  );
+}
+
+export function FeedManager({
+  stock,
+  transactions,
+  products,
+  suppliers,
+  batches,
+  summary,
+}: {
+  farm: Farm;
+  stock: FeedStock[];
+  transactions: FeedTransactionRecord[];
+  products: Product[];
+  suppliers: Supplier[];
+  batches: Batch[];
+  summary: {
+    totalRemainingKg: number;
+    lowStockCount: number;
+  };
+}) {
+  const [formOpen, setFormOpen] = useState(false);
+  const [productForm, setProductForm] = useState(false);
+
+  const [productState, productAction, productPending] =
+    useActionState(feedProductAction, empty);
+
+  return (
+    <>
+      <div className="page-heading">
+        <div>
+          <p className="eyebrow">Inventory control</p>
+
+          <h1>Feed management</h1>
+
+          <p className="heading-subtitle">
+            Stock is calculated from every purchase, usage, and adjustment.
+          </p>
+        </div>
+
+        <div className="heading-actions">
+          <Button
+            variant="secondary"
+            onClick={() => setProductForm(true)}
+          >
+            <Plus size={16} />
+            New product
+          </Button>
+
+          <Button onClick={() => setFormOpen(true)}>
+            <PackagePlus size={17} />
+            Record movement
+          </Button>
+        </div>
+      </div>
+
+      <div className="batch-summary-grid feed-summary">
+        <Card>
+          <span>Total feed remaining</span>
+
+          <strong>
+            {summary.totalRemainingKg.toLocaleString()}{" "}
+            <small>kg</small>
+          </strong>
+
+          <small>
+            {summary.lowStockCount} low-stock products
+          </small>
+        </Card>
+
+        {stock.map((item) => (
+          <Card key={item.id}>
+            <span>{item.type} feed</span>
+
+            <strong>
+              {item.remainingKg.toLocaleString()}{" "}
+              <small>kg</small>
+            </strong>
+
+            <small
+              className={
+                item.remainingKg <= item.thresholdKg
+                  ? "metric-risk"
+                  : ""
+              }
+            >
+              {item.remainingKg <= item.thresholdKg
+                ? "Low stock"
+                : "Good stock"}
+            </small>
+          </Card>
+        ))}
+      </div>
+
+      {productForm && (
+        <Card className="phase4-form">
+          <div className="form-card-heading">
+            <div>
+              <p className="eyebrow">Inventory setup</p>
+              <h2>New feed product</h2>
+            </div>
+
+            <button
+              className="icon-button"
+              onClick={() => setProductForm(false)}
+              aria-label="Close product form"
+            >
+              <X size={18} />
+            </button>
+          </div>
+
+          <Feedback state={productState} />
+
+          <form action={productAction} className="batch-form">
+            <div className="form-grid">
+              <FormField label="Product name">
+                <input
+                  name="name"
+                  placeholder="e.g. Kuku Starter"
+                  required
+                />
+              </FormField>
+
+              <FormField label="Feed type">
+                <select name="type">
+                  <option value="STARTER">Starter</option>
+                  <option value="GROWER">Grower</option>
+                  <option value="FINISHER">Finisher</option>
+                </select>
+              </FormField>
+
+              <FormField label="Low-stock threshold (kg)">
+                <input
+                  name="lowStockThreshold"
+                  type="number"
+                  min="0"
+                  step="0.001"
+                  required
+                />
+              </FormField>
+            </div>
+
+            <div className="form-actions">
+              <button
+                className="button button-primary"
+                disabled={productPending}
+              >
+                {productPending
+                  ? "Saving..."
+                  : "Create product"}
+              </button>
+
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => setProductForm(false)}
+              >
+                Cancel
+              </Button>
+            </div>
+          </form>
+        </Card>
+      )}
+
+      {formOpen && (
+        <FeedTransactionForm
+          products={products}
+          suppliers={suppliers}
+          batches={batches}
+          onClose={() => setFormOpen(false)}
+        />
+      )}
+
+      <div className="feed-layout">
+        <Card>
+          <SectionHeading
+            eyebrow="Current inventory"
+            title="Feed stock"
+          />
+
+          {stock.length === 0 ? (
+            <EmptyState
+              title="No feed products"
+              message="Create a feed product to begin tracking stock."
+            />
+          ) : (
+            <div className="feed-stock-list">
+              {stock.map((item) => {
+                const low =
+                  item.remainingKg <= item.thresholdKg;
+
+                const percent = item.purchasedKg
+                  ? Math.max(
+                      0,
+                      Math.min(
+                        100,
+                        (item.remainingKg /
+                          item.purchasedKg) *
+                          100
+                      )
+                    )
+                  : 0;
+
+                return (
+                  <div
+                    className="feed-stock-row"
+                    key={item.id}
+                  >
+                    <div className="feed-stock-name">
+                      <div className="feed-product-icon">
+                        <PackagePlus size={16} />
+                      </div>
+
+                      <div>
+                        <strong>{item.type} feed</strong>
+                        <span>{item.productName}</span>
+                      </div>
+                    </div>
+
+                    <div className="feed-stock-number">
+                      <strong>
+                        {item.remainingKg.toLocaleString()} kg
+                      </strong>
+
+                      <small>
+                        {low ? (
+                          <>
+                            <AlertTriangle size={12} />
+                            Low stock
+                          </>
+                        ) : (
+                          "Good"
+                        )}
+                      </small>
+                    </div>
+
+                    <div className="progress-track">
+                      <span
+                        className={low ? "low" : ""}
+                        style={{
+                          width: `${percent}%`,
+                        }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </Card>
+
+        <Card>
+          <SectionHeading
+            eyebrow="Ledger"
+            title="Transaction history"
+          />
+
+          <div className="feed-ledger">
+            {transactions.length === 0 ? (
+              <EmptyState
+                title="No transactions"
+                message="Feed purchases and usage will appear here."
+              />
+            ) : (
+              transactions.map((item) => (
+                <div
+                  className="feed-ledger-row"
+                  key={item.id}
+                >
+                  <div>
+                    <strong>{item.productName}</strong>
+
+                    <span>
+                      {item.date} <i />{" "}
+                      {item.notes ||
+                        item.type.toLowerCase()}
+                    </span>
+                  </div>
+
+                  <Badge
+                    tone={
+                      item.type === "PURCHASE"
+                        ? "green"
+                        : item.type === "CONSUMPTION"
+                        ? "amber"
+                        : "neutral"
+                    }
+                  >
+                    {item.type}
+                  </Badge>
+
+                  <strong
+                    className={
+                      item.type === "CONSUMPTION"
+                        ? "metric-risk"
+                        : ""
+                    }
+                  >
+                    {item.type === "CONSUMPTION"
+                      ? "-"
+                      : "+"}
+                    {item.quantity} {item.unit}
+                  </strong>
+                </div>
+              ))
+            )}
+          </div>
+        </Card>
+      </div>
+    </>
+  );
 }
