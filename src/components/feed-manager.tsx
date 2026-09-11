@@ -1,17 +1,14 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { AlertTriangle, Check, PackagePlus, Plus, X } from "lucide-react";
+import { AlertTriangle, Check, PackagePlus, X } from "lucide-react";
 import type {
   Batch,
   Farm,
   FeedStock,
   FeedTransactionRecord,
 } from "@/domain/types";
-import {
-  feedProductAction,
-  feedTransactionAction,
-} from "@/app/feed/actions";
+import { feedTransactionAction } from "@/app/feed/actions";
 import {
   Badge,
   Button,
@@ -234,10 +231,6 @@ export function FeedManager({
   };
 }) {
   const [formOpen, setFormOpen] = useState(false);
-  const [productForm, setProductForm] = useState(false);
-
-  const [productState, productAction, productPending] =
-    useActionState(feedProductAction, empty);
 
   return (
     <>
@@ -253,14 +246,6 @@ export function FeedManager({
         </div>
 
         <div className="heading-actions">
-          <Button
-            variant="secondary"
-            onClick={() => setProductForm(true)}
-          >
-            <Plus size={16} />
-            New product
-          </Button>
-
           <Button onClick={() => setFormOpen(true)}>
             <PackagePlus size={17} />
             Record movement
@@ -306,76 +291,6 @@ export function FeedManager({
         ))}
       </div>
 
-      {productForm && (
-        <Card className="phase4-form">
-          <div className="form-card-heading">
-            <div>
-              <p className="eyebrow">Inventory setup</p>
-              <h2>New feed product</h2>
-            </div>
-
-            <button
-              className="icon-button"
-              onClick={() => setProductForm(false)}
-              aria-label="Close product form"
-            >
-              <X size={18} />
-            </button>
-          </div>
-
-          <Feedback state={productState} />
-
-          <form action={productAction} className="batch-form">
-            <div className="form-grid">
-              <FormField label="Product name">
-                <input
-                  name="name"
-                  placeholder="e.g. Kuku Starter"
-                  required
-                />
-              </FormField>
-
-              <FormField label="Feed type">
-                <select name="type">
-                  <option value="STARTER">Starter</option>
-                  <option value="GROWER">Grower</option>
-                  <option value="FINISHER">Finisher</option>
-                </select>
-              </FormField>
-
-              <FormField label="Low-stock threshold (kg)">
-                <input
-                  name="lowStockThreshold"
-                  type="number"
-                  min="0"
-                  step="0.001"
-                  required
-                />
-              </FormField>
-            </div>
-
-            <div className="form-actions">
-              <button
-                className="button button-primary"
-                disabled={productPending}
-              >
-                {productPending
-                  ? "Saving..."
-                  : "Create product"}
-              </button>
-
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={() => setProductForm(false)}
-              >
-                Cancel
-              </Button>
-            </div>
-          </form>
-        </Card>
-      )}
-
       {formOpen && (
         <FeedTransactionForm
           products={products}
@@ -395,7 +310,7 @@ export function FeedManager({
           {stock.length === 0 ? (
             <EmptyState
               title="No feed products"
-              message="Create a feed product to begin tracking stock."
+              message="Starter, Grower, and Finisher feed products are configured for this farm."
             />
           ) : (
             <div className="feed-stock-list">
