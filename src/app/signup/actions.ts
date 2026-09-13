@@ -3,6 +3,8 @@
 import { redirect } from "next/navigation";
 import { createSessionForUser, hashPassword, isStrongPassword, normalizeEmail } from "@/lib/auth";
 import { getPrisma, isDatabaseConfigured } from "@/server/db";
+import { DEFAULT_EXPENSE_CATEGORIES, DEFAULT_FEED_PRODUCTS } from "@/lib/reference-data";
+import { logger } from "@/server/logger";
 
 export type AuthActionState = { ok: boolean; message: string };
 
@@ -51,6 +53,16 @@ export async function signupAction(_previousState: AuthActionState, formData: Fo
         },
       });
 
+      await tx.expenseCategory.createMany({
+        data: DEFAULT_EXPENSE_CATEGORIES.map((name) => ({ farmId: farm.id, name })),
+        skipDuplicates: true,
+      });
+
+      await tx.feedProduct.createMany({
+        data: DEFAULT_FEED_PRODUCTS.map((product) => ({ ...product, farmId: farm.id })),
+        skipDuplicates: true,
+      });
+
       return user.id;
     });
 
@@ -60,7 +72,7 @@ export async function signupAction(_previousState: AuthActionState, formData: Fo
     if (error instanceof Error && error.message === "NEXT_REDIRECT") {
       throw error;
     }
-    console.error("signupAction failed:", error);
+    logger.error("Signup action failed", error, { operation: "signupAction" });
     return { ok: false, message: "Something went wrong. Please try again." };
   }
 }

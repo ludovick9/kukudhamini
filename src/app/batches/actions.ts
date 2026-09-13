@@ -1,7 +1,14 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { getFarmContext, createBatch, updateBatch, updateBatchStatus } from "@/services/farm-services";
+import {
+  getFarmContext,
+  createBatch,
+  updateBatch,
+  updateBatchStatus,
+  deleteBatch,
+  
+} from "@/services/farm-services";
 
 export interface BatchActionState {
   ok: boolean;
@@ -61,6 +68,26 @@ export async function changeBatchStatusAction(previous: BatchActionState = initi
     revalidatePath(`/batches/${batchId}`);
     revalidatePath("/dashboard");
     return { ok: true, message: "Batch status updated." };
+  } catch (error) {
+    return errorState(error);
+  }
+}
+export async function deleteBatchAction(
+  previous: BatchActionState = initialState,
+  formData: FormData,
+): Promise<BatchActionState> {
+  void previous;
+
+  try {
+    const { farm } = await getFarmContext();
+    const batchId = formValue(formData, "batchId");
+
+    await deleteBatch(farm.id, batchId);
+
+    revalidatePath("/batches");
+    revalidatePath("/dashboard");
+
+    return { ok: true, message: "Batch deleted successfully." };
   } catch (error) {
     return errorState(error);
   }

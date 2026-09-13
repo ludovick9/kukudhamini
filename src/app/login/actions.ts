@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { createSessionForUser, getCurrentSession, normalizeEmail, verifyPassword } from "@/lib/auth";
 import { getPrisma, isDatabaseConfigured } from "@/server/db";
+import { logger } from "@/server/logger";
 
 export type AuthActionState = { ok: boolean; message: string };
 
@@ -35,7 +36,7 @@ export async function loginAction(_previousState: AuthActionState, formData: For
     if (error instanceof Error && error.message === "NEXT_REDIRECT") {
       throw error;
     }
-    console.error("loginAction failed:", error);
+    logger.error("Login action failed", error, { operation: "loginAction" });
     return { ok: false, message: "Something went wrong. Please try again." };
   }
 }

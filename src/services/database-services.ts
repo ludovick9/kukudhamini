@@ -4,6 +4,7 @@ import { currentBirds, feedStock, paymentStatus } from "@/lib/domain-rules";
 import { dateKeyInTimezone, formatTimestamp, safeTimezone } from "@/lib/timezone";
 import type { Batch, BatchActivity, BatchDetails, Expense, ExpenseSummary, FeedStock, FeedSummary, FeedTransactionRecord, HealthSummary, HealthTask, HealthTaskDetails, MortalityRecord, Notification, Payment, PaymentSummary, ReportData, Sale, SalesSummary } from "@/domain/types";
 import { batchInputSchema, batchStatusSchema, expenseInputSchema, feedProductInputSchema, feedTransactionInputSchema, healthTaskInputSchema, mortalityInputSchema, paymentInputSchema, saleInputSchema } from "@/lib/validation/database";
+import { logger } from "@/server/logger";
 
 const batchStatus = { ACTIVE: "active", COMPLETED: "completed", ARCHIVED: "archived" } as const;
 const feedType = { STARTER: "Starter", GROWER: "Grower", FINISHER: "Finisher" } as const;
@@ -30,6 +31,7 @@ export async function getDatabaseExpenses(farmId: string): Promise<Expense[]> {
 export async function getDatabaseExpenseOptions(farmId: string) {
   const prisma = getPrisma();
   const [categories, suppliers, batches] = await Promise.all([prisma.expenseCategory.findMany({ where: { farmId }, orderBy: { name: "asc" } }), prisma.supplier.findMany({ where: { farmId }, orderBy: { name: "asc" } }), prisma.batch.findMany({ where: { farmId }, orderBy: { arrivalDate: "desc" } })]);
+  if (process.env.NODE_ENV === "development" && categories.length === 0) logger.warn("No expense categories found", { operation: "getDatabaseExpenseOptions", farmId });
   return { categories, suppliers, batches };
 }
 
@@ -91,6 +93,13 @@ export async function updateDatabaseExpense(farmId: string, expenseId: string, i
   return prisma.expense.update({ where: { id: expenseId }, data: { ...data, totalAmount: data.totalAmount } });
 }
 
+export async function deleteDatabaseExpense(farmId: string, expenseId: string) {
+  await requireFarmMutationAccess(farmId);
+  const existing = await getPrisma().expense.findFirst({ where: { id: expenseId, farmId } });
+  if (!existing) throw new Error("Expense not found.");
+  return getPrisma().expense.delete({ where: { id: expenseId } });
+}
+
 export async function createDatabaseFeedProduct(farmId: string, input: unknown) {
   await requireFarmMutationAccess(farmId);
   const data = feedProductInputSchema.parse({ ...(input as object), farmId });
@@ -112,6 +121,31 @@ export async function createDatabaseFeedTransaction(farmId: string, input: unkno
     }
     return tx.feedTransaction.create({ data });
   });
+}
+
+export async function updateDatabaseFeedTransaction(farmId: string, transactionId: string, input: unknown) {
+  await requireFarmMutationAccess(farmId);
+  const data = feedTransactionInputSchema.parse({ ...(input as object), farmId });
+  const prisma = getPrisma();
+  return prisma.$transaction(async (tx) => {
+    const existing = await tx.feedTransaction.findFirst({ where: { id: transactionId, farmId }, include: { product: { include: { transactions: true } } } });
+    if (!existing) throw new Error("Feed transaction not found.");
+    const product = await tx.feedProduct.findFirst({ where: { id: data.productId, farmId }, include: { transactions: true } });
+    if (!product) throw new Error("Feed product was not found for this farm.");
+    if (data.supplierId) { const supplier = await tx.supplier.findFirst({ where: { id: data.supplierId, farmId }, select: { id: true } }); if (!supplier) throw new Error("Supplier was not found for this farm."); }
+    if (data.batchId) { const batch = await tx.batch.findFirst({ where: { id: data.batchId, farmId }, select: { id: true } }); if (!batch) throw new Error("Batch was not found for this farm."); }
+    const projected = product.transactions.filter((item) => item.id !== transactionId).reduce((total, item) => total + (item.type === "CONSUMPTION" ? -Number(item.quantity) : Number(item.quantity)), 0);
+    const nextStock = data.type === "CONSUMPTION" ? projected - data.quantity : projected + data.quantity;
+    if (nextStock < 0) throw new Error("Insufficient feed stock for this adjusted transaction.");
+    return tx.feedTransaction.update({ where: { id: transactionId }, data: { productId: data.productId, batchId: data.batchId, supplierId: data.supplierId, type: data.type, quantity: data.quantity, unit: data.unit, unitPrice: data.unitPrice, date: data.date, notes: data.notes } });
+  });
+}
+
+export async function deleteDatabaseFeedTransaction(farmId: string, transactionId: string) {
+  await requireFarmMutationAccess(farmId);
+  const existing = await getPrisma().feedTransaction.findFirst({ where: { id: transactionId, farmId } });
+  if (!existing) throw new Error("Feed transaction not found.");
+  return getPrisma().feedTransaction.delete({ where: { id: transactionId } });
 }
 
 export async function getDatabaseHealthTasks(farmId: string): Promise<HealthTask[]> {
@@ -157,6 +191,13 @@ export async function completeDatabaseHealthTask(farmId: string, taskId: string)
   return getPrisma().healthTask.update({ where: { id: taskId }, data: { status: "COMPLETED", completedAt: new Date() } });
 }
 
+export async function deleteDatabaseHealthTask(farmId: string, taskId: string) {
+  await requireFarmMutationAccess(farmId);
+  const existing = await getPrisma().healthTask.findFirst({ where: { id: taskId, farmId } });
+  if (!existing) throw new Error("Health task not found.");
+  return getPrisma().healthTask.delete({ where: { id: taskId } });
+}
+
 export async function getDatabaseBatchHealthHistory(farmId: string, batchId: string): Promise<HealthTaskDetails[]> {
   const prisma = getPrisma();
   const [records, farm] = await Promise.all([prisma.healthTask.findMany({ where: { farmId, batchId }, include: { batch: true }, orderBy: { scheduledAt: "desc" } }), prisma.farm.findUnique({ where: { id: farmId }, select: { timezone: true } })]);
@@ -166,6 +207,27 @@ export async function getDatabaseBatchHealthHistory(farmId: string, batchId: str
 export async function getDatabaseMortality(farmId: string): Promise<MortalityRecord[]> {
   const records = await getPrisma().mortalityRecord.findMany({ where: { farmId }, include: { batch: true }, orderBy: { date: "desc" } });
   return records.map((record) => ({ id: record.id, date: asDate(record.date), batchCode: record.batch.name.toUpperCase().replaceAll(" ", "-"), deaths: record.quantity, cause: record.cause ?? "Unspecified" }));
+}
+
+export async function updateDatabaseMortality(farmId: string, mortalityId: string, input: unknown) {
+  await requireFarmMutationAccess(farmId);
+  const data = mortalityInputSchema.parse({ ...(input as object), farmId });
+  const prisma = getPrisma();
+  const existing = await prisma.mortalityRecord.findFirst({ where: { id: mortalityId, farmId }, include: { batch: { include: { mortalityRecords: true, sales: true } } } });
+  if (!existing) throw new Error("Mortality record not found.");
+  const batch = existing.batch;
+  const otherMortality = batch.mortalityRecords.filter((record) => record.id !== mortalityId).reduce((sum, record) => sum + record.quantity, 0);
+  const sold = batch.sales.reduce((sum, sale) => sum + sale.birdsSold, 0);
+  const maximumAllowed = batch.initialBirdCount - sold - otherMortality;
+  if (data.quantity > maximumAllowed) throw new Error(`Only ${maximumAllowed.toLocaleString()} birds are available in this batch after accounting for current losses and sales.`);
+  return prisma.mortalityRecord.update({ where: { id: mortalityId }, data: { batchId: data.batchId, date: data.date, quantity: data.quantity, cause: data.cause, notes: data.notes } });
+}
+
+export async function deleteDatabaseMortality(farmId: string, mortalityId: string) {
+  await requireFarmMutationAccess(farmId);
+  const existing = await getPrisma().mortalityRecord.findFirst({ where: { id: mortalityId, farmId } });
+  if (!existing) throw new Error("Mortality record not found.");
+  return getPrisma().mortalityRecord.delete({ where: { id: mortalityId } });
 }
 
 export async function getDatabaseSales(farmId: string): Promise<Sale[]> {
@@ -184,8 +246,59 @@ export async function getDatabasePaymentSummary(farmId: string): Promise<Payment
 
 export async function createDatabasePayment(farmId: string, input: unknown) {
   await requireFarmMutationAccess(farmId);
-  const data = paymentInputSchema.parse(input); const prisma = getPrisma();
-  return prisma.$transaction(async (tx) => { const sale = await tx.sale.findFirst({ where: { id: data.saleId, farmId }, include: { payments: true } }); if (!sale) throw new Error("Sale was not found for this farm."); const paid = sale.payments.reduce((sum, payment) => sum + Number(payment.amount), 0); const outstanding = Number(sale.totalRevenue) - paid; if (data.amount > outstanding) throw new Error(`Payment exceeds the outstanding balance of ${outstanding.toFixed(2)}.`); return tx.payment.create({ data: { farmId, saleId: data.saleId, amount: data.amount, paymentMethod: data.paymentMethod, paymentDate: data.paymentDate, reference: data.reference, notes: data.notes } }); }, { isolationLevel: "Serializable" });
+
+  const data = paymentInputSchema.parse(input);
+  const prisma = getPrisma();
+
+  return prisma.$transaction(
+    async (tx) => {
+      const sale = await tx.sale.findFirst({
+        where: {
+          id: data.saleId,
+          farmId,
+        },
+        include: {
+          payments: true,
+        },
+      });
+
+      if (!sale) {
+        throw new Error("Sale was not found for this farm.");
+      }
+
+      const paid = sale.payments.reduce(
+        (sum, payment) => sum + Number(payment.amount),
+        0
+      );
+
+      const outstanding = Number(sale.totalRevenue) - paid;
+
+      if (outstanding <= 0) {
+        throw new Error("This sale has already been fully paid.");
+      }
+
+      if (data.amount > outstanding) {
+        throw new Error(
+          `Payment exceeds the outstanding balance of ${outstanding.toFixed(2)}.`
+        );
+      }
+
+      return tx.payment.create({
+        data: {
+          farmId,
+          saleId: data.saleId,
+          amount: data.amount,
+          paymentMethod: data.paymentMethod,
+          paymentDate: data.paymentDate,
+          reference: data.reference,
+          notes: data.notes,
+        },
+      });
+    },
+    {
+      isolationLevel: "Serializable",
+    }
+  );
 }
 
 export async function getDatabaseSaleOptions(farmId: string) {
@@ -219,6 +332,35 @@ export async function createDatabaseSale(farmId: string, input: unknown) {
     const totalRevenue = data.pricingMode === "PER_KG" ? (data.totalWeight ?? 0) * (data.pricePerKg ?? 0) : data.birdsSold * (data.pricePerBird ?? 0);
     return tx.sale.create({ data: { farmId, batchId: data.batchId, customerId: data.customerId, date: data.date, birdsSold: data.birdsSold, totalWeight: data.totalWeight, pricingMode: data.pricingMode, pricePerKg: data.pricePerKg, pricePerBird: data.pricePerBird, totalRevenue, notes: data.notes } });
   }, { isolationLevel: "Serializable" });
+}
+
+export async function updateDatabaseSale(farmId: string, saleId: string, input: unknown) {
+  await requireFarmMutationAccess(farmId);
+  const data = saleInputSchema.parse({ ...(input as object), farmId });
+  const prisma = getPrisma();
+  return prisma.$transaction(async (tx) => {
+    const existing = await tx.sale.findFirst({ where: { id: saleId, farmId }, include: { batch: { include: { mortalityRecords: true, sales: true } }, payments: true } });
+    if (!existing) throw new Error("Sale not found.");
+    if (data.customerId) { const customer = await tx.customer.findFirst({ where: { id: data.customerId, farmId } }); if (!customer) throw new Error("Selected customer was not found for this farm."); }
+    const batch = existing.batch;
+    const otherSales = batch.sales.filter((sale) => sale.id !== saleId).reduce((sum, sale) => sum + sale.birdsSold, 0);
+    const mortality = batch.mortalityRecords.reduce((sum, record) => sum + record.quantity, 0);
+    const maximumAllowed = batch.initialBirdCount - mortality - otherSales;
+    if (data.birdsSold > maximumAllowed + existing.birdsSold) {
+      throw new Error(`Only ${(maximumAllowed + existing.birdsSold).toLocaleString()} birds are available in this batch after accounting for current losses and sales.`);
+    }
+    const totalRevenue = data.pricingMode === "PER_KG" ? (data.totalWeight ?? 0) * (data.pricePerKg ?? 0) : data.birdsSold * (data.pricePerBird ?? 0);
+    return tx.sale.update({ where: { id: saleId }, data: { batchId: data.batchId, customerId: data.customerId, date: data.date, birdsSold: data.birdsSold, totalWeight: data.totalWeight, pricingMode: data.pricingMode, pricePerKg: data.pricePerKg, pricePerBird: data.pricePerBird, totalRevenue, notes: data.notes } });
+  }, { isolationLevel: "Serializable" });
+}
+
+export async function deleteDatabaseSale(farmId: string, saleId: string) {
+  await requireFarmMutationAccess(farmId);
+  const prisma = getPrisma();
+  const existing = await prisma.sale.findFirst({ where: { id: saleId, farmId }, include: { payments: true } });
+  if (!existing) throw new Error("Sale not found.");
+  if (existing.payments.length > 0) throw new Error("This sale has recorded payments and cannot be deleted. Please use a correction instead.");
+  return prisma.sale.delete({ where: { id: saleId } });
 }
 
 export async function getDatabaseNotifications(farmId: string): Promise<Notification[]> {
@@ -325,6 +467,46 @@ export async function updateDatabaseBatchStatus(farmId: string, batchId: string,
   const existing = await getPrisma().batch.findFirst({ where: { id: batchId, farmId } });
   if (!existing) throw new Error("Batch not found.");
   return getPrisma().batch.update({ where: { id: batchId }, data: { status: parsedStatus } });
+}
+export async function deleteDatabaseBatch(farmId: string, batchId: string) {
+  await requireFarmMutationAccess(farmId);
+
+  const prisma = getPrisma();
+
+  const existing = await prisma.batch.findFirst({
+    where: {
+      id: batchId,
+      farmId,
+    },
+    include: {
+      mortalityRecords: true,
+      sales: true,
+      expenses: true,
+      feedTransactions: true,
+    },
+  });
+
+  if (!existing) {
+    throw new Error("Batch not found.");
+  }
+
+  const hasHistoricalRecords =
+    existing.mortalityRecords.length > 0 ||
+    existing.sales.length > 0 ||
+    existing.expenses.length > 0 ||
+    existing.feedTransactions.length > 0;
+
+  if (hasHistoricalRecords) {
+    throw new Error(
+      "This batch has historical records and cannot be deleted. Archive it instead."
+    );
+  }
+
+  return prisma.batch.delete({
+    where: {
+      id: batchId,
+    },
+  });
 }
 
 export async function getDatabaseReportData(farmId: string, start: Date, end: Date): Promise<ReportData> {

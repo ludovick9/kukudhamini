@@ -7,6 +7,8 @@ import type { DashboardData, Farm, HealthTask, TodayTask, User } from "@/domain/
 import { formatCurrency, formatNumber } from "@/lib/format";
 import { formatLongDate } from "@/lib/timezone";
 import { useLanguage } from "@/lib/i18n/language-provider";
+import { greetingKeyForHour } from "@/lib/greeting";
+import { useEffect, useState } from "react";
 import { Badge, Card, SectionHeading } from "@/components/ui";
 
 const chartTooltip = { contentStyle: { border: "1px solid #dfe9e2", borderRadius: 12, boxShadow: "0 12px 30px rgba(23, 65, 42, .08)", fontSize: 12 }, cursor: { stroke: "#b7cabb", strokeDasharray: "4 4" } };
@@ -30,8 +32,13 @@ function HealthAlert({ task }: { task: HealthTask }) {
 export function DashboardView({ data, farm, user }: { data: DashboardData; farm: Farm; user: User }) {
   const totalFeed = data.feedStock.reduce((sum, feed) => sum + feed.remainingKg, 0);
   const { translate: tr } = useLanguage();
+  const [greetingKey, setGreetingKey] = useState<string | null>(null);
+  useEffect(() => {
+    const restore = window.setTimeout(() => setGreetingKey(greetingKeyForHour(new Date().getHours())), 0);
+    return () => window.clearTimeout(restore);
+  }, []);
   return <>
-    <div className="page-heading dashboard-heading"><div><p className="eyebrow">{formatLongDate(new Date(), farm.timezone)} <span className="live-pill"><i /> {tr("Live overview")}</span></p><h1>{tr("Good morning, {name}.", { name: user.name.split(" ")[0] })}</h1><p className="heading-subtitle">{tr("Here's what's happening across {farm} today.", { farm: farm.name })}</p></div><div className="heading-actions"><Link className="button button-secondary" href="/reports"><ArrowUpRight size={16} /> {tr("View reports")}</Link><Link className="button button-primary" href="/mortality"><Plus size={17} /> {tr("Record activity")}</Link></div></div>
+    <div className="page-heading dashboard-heading"><div><p className="eyebrow">{formatLongDate(new Date(), farm.timezone)} <span className="live-pill"><i /> {tr("Live overview")}</span></p><h1>{greetingKey ? tr(greetingKey, { name: user.name.split(" ")[0] }) : ""}</h1><p className="heading-subtitle">{tr("Here's what's happening across {farm} today.", { farm: farm.name })}</p></div><div className="heading-actions"><Link className="button button-secondary" href="/reports"><ArrowUpRight size={16} /> {tr("View reports")}</Link><Link className="button button-primary" href="/mortality"><Plus size={17} /> {tr("Record activity")}</Link></div></div>
     <div className="today-board"><div className="today-board-heading"><div><span className="today-kicker"><Clock3 size={13} /> {tr("Today's farm tasks")}</span><h2>{tr("What needs your attention?")}</h2><p>{tr("Five small actions keep this production cycle on track.")}</p></div><div className="task-count"><strong>{data.todayTasks.length}</strong><span>{tr("open items")}</span></div></div><div className="today-task-list">{data.todayTasks.map((task) => <TodayTaskCard key={task.id} task={task} />)}</div></div>
 
     <div className="stats-grid">

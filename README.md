@@ -37,3 +37,11 @@ npm run test:e2e
 Authenticated E2E testing requires a separate PostgreSQL database configured as `TEST_DATABASE_URL`; it must never equal `DATABASE_URL`. The E2E command starts an isolated test server on port 3100 and skips safely when no test database is configured. Keep generated `.next` caches on a drive with sufficient free space; cache exhaustion is an environment issue, not an application data issue.
 
 The application uses Tailwind CSS v4's `@theme` directive. VS Code's CSS validator does not recognize that directive by default, so `.vscode/settings.json` disables only the false-positive unknown-at-rule diagnostic.
+
+## Production configuration
+
+Production requires `DATABASE_URL`; the application fails closed instead of using mock data when it is missing. `TEST_DATABASE_URL` is test-only and must point to a separate database. `NEXT_PUBLIC_APP_URL` is optional and contains no secret values.
+
+The lightweight health endpoint is available at `/api/health`. It returns a safe `200` response only when the application can connect to PostgreSQL, otherwise it returns `503` without exposing database details.
+
+See [docs/database-backup.md](docs/database-backup.md) for PostgreSQL backup, restore, retention, and restore-verification procedures.

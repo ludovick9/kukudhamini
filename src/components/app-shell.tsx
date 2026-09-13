@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { Bell, ChevronDown, CircleHelp, LayoutDashboard, Leaf, LogOut, Menu, Package, Pill, ReceiptText, Settings, ShoppingBasket, Sprout, TrendingUp, X } from "lucide-react";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { Bell, ChevronDown, CircleHelp, Download, LayoutDashboard, Leaf, LogOut, Menu, Package, Pill, ReceiptText, Settings, ShoppingBasket, Sprout, TrendingUp, X } from "lucide-react";
+import { useEffect, useRef, useState, type ComponentProps, type ReactNode } from "react";
 import { useFormStatus } from "react-dom";
 import type { Farm, User } from "@/domain/types";
 import { useLanguage } from "@/lib/i18n/language-provider";
@@ -17,15 +17,26 @@ function LogoutButton({ className = "sidebar-logout", role }: { className?: stri
   return <button type="submit" className={className} role={role} disabled={pending} aria-label={pending ? t.common.loggingOut : t.common.logOut}><LogOut size={17} aria-hidden="true" /><span>{pending ? t.common.loggingOut : t.common.logOut}</span></button>;
 }
 
+function NavigationLink({ href, ...props }: ComponentProps<typeof Link>) {
+  const router = useRouter();
+  return <Link href={href} onMouseEnter={() => router.prefetch(href.toString())} onFocus={() => router.prefetch(href.toString())} {...props} />;
+}
+
 export function AppShell({ children, farm, user }: { children: ReactNode; farm: Farm; user: User }) {
   const pathname = usePathname();
+  const [navigating, setNavigating] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const accountMenuRef = useRef<HTMLDivElement>(null);
   const { t } = useLanguage();
   const navigation = [
-    { href: "/dashboard", label: t.nav.dashboard, icon: LayoutDashboard }, { href: "/batches", label: t.nav.batches, icon: Sprout }, { href: "/expenses", label: t.nav.expenses, icon: ReceiptText }, { href: "/feed", label: t.nav.feed, icon: Package }, { href: "/health", label: t.nav.health, icon: Pill }, { href: "/mortality", label: t.nav.mortality, icon: TrendingUp }, { href: "/sales", label: t.nav.sales, icon: ShoppingBasket }, { href: "/reports", label: t.nav.reports, icon: Leaf },
+    { href: "/dashboard", label: t.nav.dashboard, icon: LayoutDashboard }, { href: "/batches", label: t.nav.batches, icon: Sprout }, { href: "/expenses", label: t.nav.expenses, icon: ReceiptText }, { href: "/feed", label: t.nav.feed, icon: Package }, { href: "/health", label: t.nav.health, icon: Pill }, { href: "/mortality", label: t.nav.mortality, icon: TrendingUp }, { href: "/sales", label: t.nav.sales, icon: ShoppingBasket }, { href: "/reports", label: t.nav.reports, icon: Leaf }, { href: "/exports", label: "Exports", icon: Download }, { href: "/bulk-entry", label: "Bulk entry", icon: ReceiptText },
   ];
+
+  useEffect(() => {
+    const clear = window.setTimeout(() => setNavigating(false), 0);
+    return () => window.clearTimeout(clear);
+  }, [pathname]);
 
   useEffect(() => {
     if (!accountMenuOpen) return;
@@ -64,13 +75,13 @@ export function AppShell({ children, farm, user }: { children: ReactNode; farm: 
         <nav className="main-nav" aria-label={t.common.workspace}>
           {navigation.map(({ href, label, icon: Icon }) => {
             const active = pathname === href || (href === "/dashboard" && pathname === "/");
-            return <Link key={href} href={href} onClick={() => setMobileOpen(false)} className={`nav-link ${active ? "nav-link-active" : ""}`}><Icon size={18} strokeWidth={active ? 2.2 : 1.8} /><span>{label}</span></Link>;
+            return <NavigationLink key={href} href={href} onClick={() => { setMobileOpen(false); setNavigating(true); }} className={`nav-link ${active ? "nav-link-active" : ""}`}><Icon size={18} strokeWidth={active ? 2.2 : 1.8} /><span>{label}</span></NavigationLink>;
           })}
         </nav>
 
         <div className="sidebar-bottom">
-          <Link href="/notifications" onClick={() => setMobileOpen(false)} className={`nav-link ${pathname === "/notifications" ? "nav-link-active" : ""}`}><Bell size={18} /><span>{t.nav.notifications}</span>{(farm.unreadNotificationCount ?? 0) > 0 && <span className="notification-count">{farm.unreadNotificationCount}</span>}</Link>
-          <Link href="/settings" onClick={() => setMobileOpen(false)} className={`nav-link ${pathname === "/settings" ? "nav-link-active" : ""}`}><Settings size={18} /><span>{t.nav.settings}</span></Link>
+          <NavigationLink href="/notifications" onClick={() => { setMobileOpen(false); setNavigating(true); }} className={`nav-link ${pathname === "/notifications" ? "nav-link-active" : ""}`}><Bell size={18} /><span>{t.nav.notifications}</span>{(farm.unreadNotificationCount ?? 0) > 0 && <span className="notification-count">{farm.unreadNotificationCount}</span>}</NavigationLink>
+          <NavigationLink href="/settings" onClick={() => { setMobileOpen(false); setNavigating(true); }} className={`nav-link ${pathname === "/settings" ? "nav-link-active" : ""}`}><Settings size={18} /><span>{t.nav.settings}</span></NavigationLink>
           <div className="sidebar-account"><div className="sidebar-account-heading"><span className="sidebar-account-avatar" aria-hidden="true">{user.initials}</span><div><strong>{user.name}</strong>{user.email && <span>{user.email}</span>}</div></div><form action={logoutAction}><LogoutButton /></form></div>
           <div className="sidebar-help"><CircleHelp size={18} /><div><strong>{t.common.needHelp}</strong><span>{t.common.farmGuide}</span></div></div>
         </div>
@@ -78,6 +89,7 @@ export function AppShell({ children, farm, user }: { children: ReactNode; farm: 
 
       {mobileOpen && <button className="mobile-overlay" onClick={() => setMobileOpen(false)} aria-label="Close navigation overlay" />}
       <main className="main-content">
+        {navigating && <div className="navigation-progress" role="status" aria-label="Loading next page" />}
         <header className="topbar">
           <button className="mobile-menu" onClick={() => setMobileOpen(true)} aria-label={t.common.openNavigation}><Menu size={22} /></button>
           <div className="mobile-brand"><span className="brand-mark small">🐔</span><strong>Kuku<span>Dhamini</span></strong></div>

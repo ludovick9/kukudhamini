@@ -1,6 +1,7 @@
 import "dotenv/config";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../src/generated/prisma/client";
+import { DEFAULT_EXPENSE_CATEGORIES, DEFAULT_FEED_PRODUCTS } from "../src/lib/reference-data";
 
 if (!process.env.DATABASE_URL) {
   throw new Error("DATABASE_URL is required to seed the development database.");
@@ -11,15 +12,30 @@ const prisma = new PrismaClient({ adapter });
 const day = (value: string) => new Date(`${value}T00:00:00.000Z`);
 const at = (value: string) => new Date(`${value}:00.000Z`);
 
+async function ensureFarmReferenceData(farmId: string) {
+  await prisma.expenseCategory.createMany({
+    data: DEFAULT_EXPENSE_CATEGORIES.map((name) => ({ farmId, name })),
+    skipDuplicates: true,
+  });
+
+  await prisma.feedProduct.createMany({
+    data: DEFAULT_FEED_PRODUCTS.map((product) => ({ ...product, farmId })),
+    skipDuplicates: true,
+  });
+}
+
 async function main() {
   const user = await prisma.user.upsert({ where: { email: "demo@kukudhamini.local" }, update: {}, create: { name: "Demo Farm Manager", email: "demo@kukudhamini.local" } });
   const existingFarm = await prisma.farm.findFirst({ where: { name: "KukuDhamini Poultry Farm (DEMO)" } });
   if (existingFarm) {
-    console.log("Development demo data already exists.");
+    const farms = await prisma.farm.findMany({ select: { id: true } });
+    for (const farm of farms) await ensureFarmReferenceData(farm.id);
+    console.log("Reference data is present for all farms; existing records were preserved.");
     return;
   }
   const farm = await prisma.farm.create({ data: { name: "KukuDhamini Poultry Farm (DEMO)", location: "Morogoro, Tanzania", currency: "TZS", timezone: "Africa/Dar_es_Salaam" } });
   await prisma.farmMembership.create({ data: { userId: user.id, farmId: farm.id, role: "OWNER" } });
+  await ensureFarmReferenceData(farm.id);
 
   const [batch1, batch2, batch3] = await Promise.all([
     prisma.batch.create({ data: { farmId: farm.id, name: "September Starter", breed: "Cobb 500", arrivalDate: day("2026-08-25"), initialBirdCount: 2040, expectedHarvestDate: day("2026-10-06"), status: "ACTIVE", notes: "Development demo data." } }),
@@ -27,16 +43,12 @@ async function main() {
     prisma.batch.create({ data: { farmId: farm.id, name: "September Growers", breed: "Cobb 500", arrivalDate: day("2026-09-01"), initialBirdCount: 1359, expectedHarvestDate: day("2026-10-13"), status: "ACTIVE", notes: "Development demo data." } }),
   ]);
 
-  const categories = await Promise.all(["Chicks", "Feed", "Medicine", "Utilities", "Labour", "Transport", "Equipment"].map((name) => prisma.expenseCategory.create({ data: { farmId: farm.id, name } })));
+  const categories = await prisma.expenseCategory.findMany({ where: { farmId: farm.id } });
   const category = Object.fromEntries(categories.map((item) => [item.name, item.id]));
   const supplier = await prisma.supplier.create({ data: { farmId: farm.id, name: "Mkulima Feeds", phone: "+255 700 000 001" } });
   const vetSupplier = await prisma.supplier.create({ data: { farmId: farm.id, name: "Afya Vet Supplies", phone: "+255 700 000 002" } });
 
-  const products = await Promise.all([
-    prisma.feedProduct.create({ data: { farmId: farm.id, type: "STARTER", name: "Kuku Starter", lowStockThreshold: 150 } }),
-    prisma.feedProduct.create({ data: { farmId: farm.id, type: "GROWER", name: "Kuku Grower", lowStockThreshold: 250 } }),
-    prisma.feedProduct.create({ data: { farmId: farm.id, type: "FINISHER", name: "Kuku Finisher", lowStockThreshold: 220 } }),
-  ]);
+  const products = await prisma.feedProduct.findMany({ where: { farmId: farm.id } });
   const product = Object.fromEntries(products.map((item) => [item.type, item.id]));
 
   await prisma.expense.createMany({ data: [
@@ -75,6 +87,9 @@ async function main() {
     { farmId: farm.id, userId: user.id, type: "FEED", title: "Starter feed is low", message: "120 kg remaining, below the 150 kg threshold.", priority: "HIGH" },
     { farmId: farm.id, userId: user.id, relatedBatchId: batch3.id, type: "HEALTH", title: "Health task tomorrow", message: "Health check scheduled for BATCH-003.", priority: "MEDIUM" },
   ] });
+
+  const farms = await prisma.farm.findMany({ select: { id: true } });
+  for (const existing of farms) await ensureFarmReferenceData(existing.id);
 }
 
 main().then(async () => prisma.$disconnect()).catch(async (error) => { console.error(error); await prisma.$disconnect(); process.exit(1); });

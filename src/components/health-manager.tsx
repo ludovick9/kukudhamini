@@ -1,9 +1,9 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { Check, Edit3, Plus, Search, ShieldCheck, X } from "lucide-react";
+import { Check, Edit3, Plus, Search, ShieldCheck, Trash2, X } from "lucide-react";
 import type { Batch, HealthSummary, HealthTask } from "@/domain/types";
-import { healthTaskAction, completeHealthTaskAction } from "@/app/health/actions";
+import { healthTaskAction, completeHealthTaskAction, deleteHealthTaskAction } from "@/app/health/actions";
 import { Badge, Button, Card, EmptyState, FormField, SectionHeading } from "@/components/ui";
 
 const empty = { ok: false, message: "" };
@@ -24,5 +24,7 @@ export function HealthManager({ batches, tasks, summary }: { batches: Batch[]; t
 
 function HealthTaskRow({ task, onEdit }: { task: HealthTask; onEdit: () => void }) {
   const [state, action, pending] = useActionState(completeHealthTaskAction, empty);
-  return <div className="health-task-row"><div className={`health-task-icon health-${tone(task.status)}`}><ShieldCheck size={17} /></div><div className="health-task-main"><strong>{task.name}</strong><span>{task.type} <i /> {task.batchCode}</span><small>{task.scheduledDate} · {task.relativeDate}</small></div><Badge tone={tone(task.status)}>{label(task.status)}</Badge><div className="health-task-actions">{task.status !== "completed" && <form action={action}><input type="hidden" name="taskId" value={task.id} /><button className="row-action-text" disabled={pending}>{pending ? "..." : "Complete"}</button></form>}<button className="icon-button" onClick={onEdit} aria-label={`Edit ${task.name}`}><Edit3 size={15} /></button></div>{state.message && <span className="health-row-feedback">{state.message}</span>}</div>;
+  const [deleteState, deleteAction, deletePending] = useActionState(deleteHealthTaskAction, empty);
+  function remove() { if (window.confirm(`Delete health task "${task.name}"?`)) { const formData = new FormData(); formData.set("taskId", task.id); void deleteAction(formData); } }
+  return <div className="health-task-row"><div className={`health-task-icon health-${tone(task.status)}`}><ShieldCheck size={17} /></div><div className="health-task-main"><strong>{task.name}</strong><span>{task.type} <i /> {task.batchCode}</span><small>{task.scheduledDate} · {task.relativeDate}</small></div><Badge tone={tone(task.status)}>{label(task.status)}</Badge><div className="health-task-actions">{task.status !== "completed" && <form action={action}><input type="hidden" name="taskId" value={task.id} /><button className="row-action-text" disabled={pending}>{pending ? "..." : "Complete"}</button></form>}<button type="button" className="icon-button" onClick={onEdit} aria-label={`Edit ${task.name}`}><Edit3 size={15} /></button><button type="button" className="icon-button" onClick={remove} disabled={deletePending} aria-label={`Delete ${task.name}`}><Trash2 size={15} /></button></div>{(state.message || deleteState.message) && <span className="health-row-feedback">{deleteState.message || state.message}</span>}</div>;
 }

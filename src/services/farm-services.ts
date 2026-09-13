@@ -1,10 +1,11 @@
 import { getPrisma, isDatabaseConfigured } from "@/server/db";
 import { getCurrentSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { completeDatabaseHealthTask, createDatabaseBatch, createDatabaseExpense, createDatabaseFeedProduct, createDatabaseFeedTransaction, createDatabaseHealthTask, createDatabaseMortality, createDatabasePayment, createDatabaseSale, generateDatabaseHealthNotifications, getDatabaseBatchDetails, getDatabaseBatchHealthHistory, getDatabaseBatches, getDatabaseExpenseOptions, getDatabaseExpenseSummary, getDatabaseExpenses, getDatabaseFeedStock, getDatabaseFeedSummary, getDatabaseFeedTransactions, getDatabaseHealthSummary, getDatabaseHealthTasks, getDatabaseMortality, getDatabaseNotifications, getDatabasePaymentSummary, getDatabasePayments, getDatabaseReportData, getDatabaseSaleOptions, getDatabaseSales, getDatabaseSalesSummary, getDatabaseUnreadNotificationCount, markAllDatabaseNotificationsRead, markDatabaseNotificationRead, updateDatabaseBatch, updateDatabaseBatchStatus, updateDatabaseExpense, updateDatabaseHealthTask } from "@/services/database-services";
+import { completeDatabaseHealthTask, createDatabaseBatch, createDatabaseExpense, createDatabaseFeedProduct, createDatabaseFeedTransaction, createDatabaseHealthTask, createDatabaseMortality, createDatabasePayment, createDatabaseSale, deleteDatabaseBatch, deleteDatabaseExpense, deleteDatabaseFeedTransaction, deleteDatabaseHealthTask, deleteDatabaseMortality, deleteDatabaseSale, generateDatabaseHealthNotifications, getDatabaseBatchDetails, getDatabaseBatchHealthHistory, getDatabaseBatches, getDatabaseExpenseOptions, getDatabaseExpenseSummary, getDatabaseExpenses, getDatabaseFeedStock, getDatabaseFeedSummary, getDatabaseFeedTransactions, getDatabaseHealthSummary, getDatabaseHealthTasks, getDatabaseMortality, getDatabaseNotifications, getDatabasePaymentSummary, getDatabasePayments, getDatabaseReportData, getDatabaseSaleOptions, getDatabaseSales, getDatabaseSalesSummary, getDatabaseUnreadNotificationCount, markAllDatabaseNotificationsRead, markDatabaseNotificationRead, updateDatabaseBatch, updateDatabaseBatchStatus, updateDatabaseExpense, updateDatabaseFeedTransaction, updateDatabaseHealthTask, updateDatabaseMortality, updateDatabaseSale } from "@/services/database-services";
 import { getDashboardData as getMockDashboardData, getFarmContext as getMockFarmContext, getBatches as getMockBatches, getExpenses as getMockExpenses, getFeedStock as getMockFeedStock, getHealthTasks as getMockHealthTasks, getMortality as getMockMortality, getNotifications as getMockNotifications, getSales as getMockSales } from "@/services/mock-services";
 import type { BatchDetails, DashboardData, PaymentSummary, ReportData, SaleDetails } from "@/domain/types";
 import { dateKeyInTimezone } from "@/lib/timezone";
+import { logger } from "@/server/logger";
 
 export function usingDatabase() {
   return isDatabaseConfigured();
@@ -72,6 +73,11 @@ export async function updateHealthTask(farmId: string, taskId: string, input: un
   return updateDatabaseHealthTask(farmId, taskId, input);
 }
 
+export async function deleteHealthTask(farmId: string, taskId: string) {
+  if (!usingDatabase()) throw new Error("Health task deletion requires a configured database.");
+  return deleteDatabaseHealthTask(farmId, taskId);
+}
+
 export async function completeHealthTask(farmId: string, taskId: string) {
   if (!usingDatabase()) throw new Error("Health task completion requires a configured database.");
   return completeDatabaseHealthTask(farmId, taskId);
@@ -86,6 +92,16 @@ export async function createMortality(farmId: string, input: unknown) {
   return createDatabaseMortality(farmId, input);
 }
 
+export async function updateMortality(farmId: string, mortalityId: string, input: unknown) {
+  if (!usingDatabase()) throw new Error("Mortality editing requires a configured database.");
+  return updateDatabaseMortality(farmId, mortalityId, input);
+}
+
+export async function deleteMortality(farmId: string, mortalityId: string) {
+  if (!usingDatabase()) throw new Error("Mortality deletion requires a configured database.");
+  return deleteDatabaseMortality(farmId, mortalityId);
+}
+
 export async function getSales(farmId: string) {
   return usingDatabase() ? getDatabaseSales(farmId) : getMockSales();
 }
@@ -98,6 +114,8 @@ export async function getSalePayments(farmId: string, saleId: string) { return u
 export async function createPayment(farmId: string, input: unknown) { if (!usingDatabase()) throw new Error("Payments require a configured database."); return createDatabasePayment(farmId, input); }
 export async function getSaleDetails(farmId: string, saleId: string): Promise<SaleDetails | null> { const sale = (await getSales(farmId)).find((item) => item.id === saleId); if (!sale) return null; return { ...sale, payments: await getSalePayments(farmId, saleId) }; }
 export async function createSale(farmId: string, input: unknown) { if (!usingDatabase()) throw new Error("Sales require a configured database."); return createDatabaseSale(farmId, input); }
+export async function updateSale(farmId: string, saleId: string, input: unknown) { if (!usingDatabase()) throw new Error("Sales editing requires a configured database."); return updateDatabaseSale(farmId, saleId, input); }
+export async function deleteSale(farmId: string, saleId: string) { if (!usingDatabase()) throw new Error("Sales deletion requires a configured database."); return deleteDatabaseSale(farmId, saleId); }
 
 export async function getNotifications(farmId: string) {
   return usingDatabase() ? getDatabaseNotifications(farmId) : getMockNotifications();
@@ -151,9 +169,19 @@ export async function updateBatchStatus(farmId: string, batchId: string, status:
   if (!usingDatabase()) throw new Error("Batch status changes require a configured database.");
   return updateDatabaseBatchStatus(farmId, batchId, status);
 }
+export async function deleteBatch(farmId: string, batchId: string) {
+  if (!usingDatabase()) {
+    throw new Error("Batch deletion requires a configured database.");
+  }
+
+  return deleteDatabaseBatch(farmId, batchId);
+}
 
 export async function getExpenseOptions(farmId: string) {
-  if (!usingDatabase()) return { categories: [], suppliers: [], batches: await getMockBatches() };
+  if (!usingDatabase()) {
+    if (process.env.NODE_ENV === "development") logger.warn("Database unavailable for expense options", { operation: "getExpenseOptions" });
+    return { categories: [], suppliers: [], batches: await getMockBatches() };
+  }
   const options = await getDatabaseExpenseOptions(farmId);
   return { ...options, batches: await getBatches(farmId) };
 }
@@ -166,6 +194,11 @@ export async function getExpenseSummary(farmId: string) {
 export async function updateExpense(farmId: string, expenseId: string, input: unknown) {
   if (!usingDatabase()) throw new Error("Expense editing requires a configured database.");
   return updateDatabaseExpense(farmId, expenseId, input);
+}
+
+export async function deleteExpense(farmId: string, expenseId: string) {
+  if (!usingDatabase()) throw new Error("Expense deletion requires a configured database.");
+  return deleteDatabaseExpense(farmId, expenseId);
 }
 
 export async function createExpense(farmId: string, input: unknown) {
@@ -183,8 +216,14 @@ export async function getFeedSummary(farmId: string) {
 }
 
 export async function getFeedOptions(farmId: string) {
-  if (!usingDatabase()) return { products: [], suppliers: [], batches: await getMockBatches() };
-  const prisma = getPrisma(); return { products: await prisma.feedProduct.findMany({ where: { farmId }, orderBy: { type: "asc" } }), suppliers: await prisma.supplier.findMany({ where: { farmId }, orderBy: { name: "asc" } }), batches: await getBatches(farmId) };
+  if (!usingDatabase()) {
+    if (process.env.NODE_ENV === "development") logger.warn("Database unavailable for feed options", { operation: "getFeedOptions" });
+    return { products: [], suppliers: [], batches: await getMockBatches() };
+  }
+  const prisma = getPrisma();
+  const [products, suppliers, batches] = await Promise.all([prisma.feedProduct.findMany({ where: { farmId }, orderBy: { type: "asc" } }), prisma.supplier.findMany({ where: { farmId }, orderBy: { name: "asc" } }), getBatches(farmId)]);
+  if (process.env.NODE_ENV === "development" && products.length === 0) logger.warn("No feed products found", { operation: "getFeedOptions", farmId });
+  return { products, suppliers, batches };
 }
 
 export async function createFeedProduct(farmId: string, input: unknown) {
@@ -195,4 +234,14 @@ export async function createFeedProduct(farmId: string, input: unknown) {
 export async function createFeedTransaction(farmId: string, input: unknown) {
   if (!usingDatabase()) throw new Error("Feed transaction creation requires a configured database.");
   return createDatabaseFeedTransaction(farmId, input);
+}
+
+export async function updateFeedTransaction(farmId: string, transactionId: string, input: unknown) {
+  if (!usingDatabase()) throw new Error("Feed transaction editing requires a configured database.");
+  return updateDatabaseFeedTransaction(farmId, transactionId, input);
+}
+
+export async function deleteFeedTransaction(farmId: string, transactionId: string) {
+  if (!usingDatabase()) throw new Error("Feed transaction deletion requires a configured database.");
+  return deleteDatabaseFeedTransaction(farmId, transactionId);
 }

@@ -1,0 +1,14 @@
+"use client";
+
+import { useActionState } from "react";
+import { healthBulkAction } from "@/app/health/actions";
+import { feedBulkAction } from "@/app/feed/actions";
+import type { Batch } from "@/domain/types";
+import { Button, Card, FormField } from "@/components/ui";
+
+const empty = { ok: false, message: "" };
+export function BulkEntryManager({ batches, products }: { batches: Batch[]; products: Array<{ id: string; name: string; type: string }> }) {
+  const [feedState, feedAction, feedPending] = useActionState(feedBulkAction, empty);
+  const [healthState, healthAction, healthPending] = useActionState(healthBulkAction, empty);
+  return <div className="settings-grid"><Card><h2>Bulk feed entry</h2><p className="heading-subtitle">Add one row per movement. Format: date, quantity, unit price.</p><form action={feedAction} className="stack-form"><FormField label="Product"><select name="productId" required>{products.map((item) => <option key={item.id} value={item.id}>{item.name} · {item.type}</option>)}</select></FormField><div className="form-grid"><FormField label="Type"><select name="type"><option value="PURCHASE">Purchase</option><option value="CONSUMPTION">Consumption</option><option value="ADJUSTMENT">Adjustment</option></select></FormField><FormField label="Batch"><select name="batchId"><option value="">Farm-wide</option>{batches.map((item) => <option key={item.id} value={item.id}>{item.code}</option>)}</select></FormField></div><FormField label="Rows"><textarea name="rows" rows={8} placeholder="2026-09-13, 100, 1800\n2026-09-14, 120, 1800" required /></FormField>{feedState.message && <p className={`form-feedback ${feedState.ok ? "success" : "error"}`}>{feedState.message}</p>}<Button disabled={feedPending}>{feedPending ? "Saving..." : "Save feed rows"}</Button></form></Card><Card><h2>Bulk health entry</h2><p className="heading-subtitle">Add one row per task. Format: date, task title.</p><form action={healthAction} className="stack-form"><div className="form-grid"><FormField label="Batch"><select name="batchId" required>{batches.map((item) => <option key={item.id} value={item.id}>{item.code}</option>)}</select></FormField><FormField label="Type"><select name="type"><option value="VACCINATION">Vaccination</option><option value="MEDICINE">Medicine</option><option value="OTHER">Other</option></select></FormField><FormField label="Time"><input name="time" type="time" defaultValue="09:00" /></FormField></div><FormField label="Rows"><textarea name="rows" rows={8} placeholder="2026-09-13, Newcastle vaccination\n2026-09-20, Vitamin supplement" required /></FormField><FormField label="Instructions"><textarea name="instructions" rows={3} /></FormField>{healthState.message && <p className={`form-feedback ${healthState.ok ? "success" : "error"}`}>{healthState.message}</p>}<Button disabled={healthPending}>{healthPending ? "Saving..." : "Save health rows"}</Button></form></Card></div>;
+}

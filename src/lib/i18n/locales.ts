@@ -220,6 +220,8 @@ const operationalExtra = {
 const operationalExplicit = {
   en: {
     "Good morning, {name}.": "Good morning, {name}.",
+    "Good afternoon, {name}.": "Good afternoon, {name}.",
+    "Good evening, {name}.": "Good evening, {name}.",
     "Here's what's happening across {farm} today.": "Here's what's happening across {farm} today.",
     "View reports": "View reports",
     "Record activity": "Record activity",
@@ -229,6 +231,8 @@ const operationalExplicit = {
   },
   sw: {
     "Good morning, {name}.": "Habari za asubuhi, {name}.",
+    "Good afternoon, {name}.": "Habari za mchana, {name}.",
+    "Good evening, {name}.": "Habari za jioni, {name}.",
     "Here's what's happening across {farm} today.": "Hivi ndivyo kinachoendelea katika {farm} leo.",
     "View reports": "Tazama ripoti",
     "Record activity": "Rekodi shughuli",

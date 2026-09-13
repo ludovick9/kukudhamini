@@ -17,7 +17,7 @@ test("sign up, persist session, greet user, and log out", async ({ page }) => {
   await page.getByRole("button", { name: "Create account" }).click();
 
   await expect(page).toHaveURL(/\/dashboard$/, { timeout: navigationTimeout });
-  await expect(page.getByRole("heading", { name: `Good morning, E2E.` })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Good (morning|afternoon|evening), E2E\./ })).toBeVisible();
 
   const database = new Client({ connectionString: testDatabaseUrl });
   await database.connect();
@@ -43,7 +43,7 @@ test("sign up, persist session, greet user, and log out", async ({ page }) => {
 
   await page.reload();
   await expect(page).toHaveURL(/\/dashboard$/);
-  await expect(page.getByRole("heading", { name: `Good morning, E2E.` })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Good (morning|afternoon|evening), E2E\./ })).toBeVisible();
   await page.locator(".user-chip").click();
   await expect(page).toHaveURL(/\/dashboard$/);
   await expect(page.locator("#account-menu")).toBeVisible();
