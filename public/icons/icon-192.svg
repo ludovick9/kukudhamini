@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="192" height="192" role="img" aria-labelledby="title">
+  <title id="title">KukuDhamini</title>
+  <rect width="192" height="192" rx="40" fill="#176b3b"/>
+  <circle cx="96" cy="96" r="66" fill="#d99038"/>
+  <path d="M55 112c0-30 18-51 43-51 18 0 33 12 39 29 4 12 2 29-5 40-9 14-25 22-44 22-18 0-33-6-33-20Z" fill="#fff"/>
+  <circle cx="115" cy="83" r="5" fill="#173b28"/>
+  <path d="m136 91 22 8-22 8Z" fill="#d99038"/>
+  <path d="M79 63c-3-12 7-21 17-13 5-12 18-8 17 4 12-3 16 10 7 17-13-4-28-5-41-1Z" fill="#d85d4b"/>
+  <path d="M74 128c-4 11-7 19-12 26m39-25c2 10 4 18 8 25" fill="none" stroke="#d99038" stroke-linecap="round" stroke-width="7"/>
+</svg>

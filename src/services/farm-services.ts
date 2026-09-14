@@ -1,6 +1,5 @@
 import { getPrisma, isDatabaseConfigured } from "@/server/db";
-import { getCurrentSession } from "@/lib/auth";
-import { redirect } from "next/navigation";
+import { getAuthenticatedFarmContext } from "@/lib/auth";
 import { completeDatabaseHealthTask, createDatabaseBatch, createDatabaseExpense, createDatabaseFeedProduct, createDatabaseFeedTransaction, createDatabaseHealthTask, createDatabaseMortality, createDatabasePayment, createDatabaseSale, deleteDatabaseBatch, deleteDatabaseExpense, deleteDatabaseFeedTransaction, deleteDatabaseHealthTask, deleteDatabaseMortality, deleteDatabaseSale, generateDatabaseHealthNotifications, getDatabaseBatchDetails, getDatabaseBatchHealthHistory, getDatabaseBatches, getDatabaseExpenseOptions, getDatabaseExpenseSummary, getDatabaseExpenses, getDatabaseFeedStock, getDatabaseFeedSummary, getDatabaseFeedTransactions, getDatabaseHealthSummary, getDatabaseHealthTasks, getDatabaseMortality, getDatabaseNotifications, getDatabasePaymentSummary, getDatabasePayments, getDatabaseReportData, getDatabaseSaleOptions, getDatabaseSales, getDatabaseSalesSummary, getDatabaseUnreadNotificationCount, markAllDatabaseNotificationsRead, markDatabaseNotificationRead, updateDatabaseBatch, updateDatabaseBatchStatus, updateDatabaseExpense, updateDatabaseFeedTransaction, updateDatabaseHealthTask, updateDatabaseMortality, updateDatabaseSale } from "@/services/database-services";
 import { getDashboardData as getMockDashboardData, getFarmContext as getMockFarmContext, getBatches as getMockBatches, getExpenses as getMockExpenses, getFeedStock as getMockFeedStock, getHealthTasks as getMockHealthTasks, getMortality as getMockMortality, getNotifications as getMockNotifications, getSales as getMockSales } from "@/services/mock-services";
 import type { BatchDetails, DashboardData, PaymentSummary, ReportData, SaleDetails } from "@/domain/types";
@@ -17,26 +16,7 @@ export async function getFarmContext() {
     throw new Error("The database is not configured.");
   }
 
-  const session = await getCurrentSession();
-  if (!session) {
-    redirect("/login");
-  }
-
-  const membership = await getPrisma().farmMembership.findFirst({
-    where: { userId: session.userId },
-    include: { farm: true, user: true },
-    orderBy: { createdAt: "asc" },
-  });
-
-  if (!membership) {
-    redirect("/login");
-  }
-
-  const unreadNotificationCount = await getDatabaseUnreadNotificationCount(membership.farm.id);
-  return {
-    farm: { id: membership.farm.id, name: membership.farm.name, location: membership.farm.location, currency: membership.farm.currency, timezone: membership.farm.timezone, unreadNotificationCount },
-    user: { id: membership.user.id, name: membership.user.name, email: membership.user.email, role: membership.role, initials: membership.user.name.split(" ").filter(Boolean).map((part) => part[0]).join("").slice(0, 2).toUpperCase() || "U" },
-  };
+  return getAuthenticatedFarmContext();
 }
 
 export async function getBatches(farmId: string) {

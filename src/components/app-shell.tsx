@@ -62,7 +62,7 @@ export function AppShell({ children, farm, user }: { children: ReactNode; farm: 
         <div className="brand-lockup">
           <div className="brand-mark" aria-hidden="true"><span>🐔</span></div>
           <div><strong>Kuku<span>Dhamini</span></strong><small>Your broiler farm guardian</small></div>
-          <button className="mobile-close" onClick={() => setMobileOpen(false)} aria-label={t.common.closeNavigation}><X size={20} /></button>
+          <button type="button" className="mobile-close" onClick={() => setMobileOpen(false)} aria-label={t.common.closeNavigation}><X size={20} /></button>
         </div>
 
         <div className="farm-switcher">
@@ -87,11 +87,11 @@ export function AppShell({ children, farm, user }: { children: ReactNode; farm: 
         </div>
       </aside>
 
-      {mobileOpen && <button className="mobile-overlay" onClick={() => setMobileOpen(false)} aria-label="Close navigation overlay" />}
+      {mobileOpen && <button type="button" className="mobile-overlay" onClick={() => setMobileOpen(false)} aria-label="Close navigation overlay" />}
       <main className="main-content">
         {navigating && <div className="navigation-progress" role="status" aria-label="Loading next page" />}
         <header className="topbar">
-          <button className="mobile-menu" onClick={() => setMobileOpen(true)} aria-label={t.common.openNavigation}><Menu size={22} /></button>
+          <button type="button" className="mobile-menu" onClick={() => setMobileOpen(true)} aria-label={t.common.openNavigation}><Menu size={22} /></button>
           <div className="mobile-brand"><span className="brand-mark small">🐔</span><strong>Kuku<span>Dhamini</span></strong></div>
           <div className="topbar-farm"><span className="status-dot" />{farm.name}<ChevronDown size={15} /></div>
           <div className="topbar-actions"><span className="topbar-date">{formatLongDate(new Date(), farm.timezone)}</span><Link href="/notifications" className="icon-button notification-button" aria-label="View notifications"><Bell size={19} /><i /></Link><div className="account-menu-wrap" ref={accountMenuRef}><button type="button" className="user-chip" aria-label={`${user.name}, ${t.common.accountSettings}`} aria-haspopup="menu" aria-expanded={accountMenuOpen} aria-controls="account-menu" onClick={() => setAccountMenuOpen((open) => !open)}><span>{user.initials}</span><strong>{user.name}</strong><ChevronDown size={14} /></button>{accountMenuOpen && <div id="account-menu" className="account-menu" role="menu"><div className="account-menu-header"><span className="account-menu-avatar" aria-hidden="true">{user.initials}</span><div><strong>{user.name}</strong>{user.email && <span>{user.email}</span>}</div></div><div className="account-menu-links"><Link href="/settings" role="menuitem" onClick={() => setAccountMenuOpen(false)}><Settings size={16} aria-hidden="true" />{t.common.accountSettings}</Link><Link href="/settings#appearance" role="menuitem" onClick={() => setAccountMenuOpen(false)}><Sprout size={16} aria-hidden="true" />{t.common.appearance}</Link><Link href="/settings#language" role="menuitem" onClick={() => setAccountMenuOpen(false)}><Leaf size={16} aria-hidden="true" />{t.common.language}</Link></div><div className="account-menu-divider" /><form action={logoutAction}><LogoutButton className="account-menu-logout" role="menuitem" /></form></div>}</div></div>

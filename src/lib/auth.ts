@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { getPrisma, isDatabaseConfigured } from "@/server/db";
 import type { Farm, User } from "@/domain/types";
 import { canMutateFarm } from "@/lib/domain-rules";
+import { cache } from "react";
 
 export const SESSION_COOKIE_NAME = "kukudhamini_session";
 const SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 30;
@@ -95,7 +96,7 @@ export async function revokeSessionToken(token?: string | null) {
   });
 }
 
-export async function getCurrentSession(): Promise<AuthenticatedSession | null> {
+async function readCurrentSession(): Promise<AuthenticatedSession | null> {
   if (!isDatabaseConfigured()) return null;
 
   const cookieStore = await cookies();
@@ -135,6 +136,14 @@ export async function getCurrentSession(): Promise<AuthenticatedSession | null> 
   };
 }
 
+export const getCurrentSession = cache(readCurrentSession);
+
+const getFarmMembershipForUser = cache(async (userId: string) => getPrisma().farmMembership.findFirst({
+  where: { userId },
+  include: { farm: true, user: true },
+  orderBy: { createdAt: "asc" },
+}));
+
 export async function getCurrentUser() {
   const session = await getCurrentSession();
   return session?.user ?? null;
@@ -147,11 +156,7 @@ export async function getAuthenticatedFarmContext() {
   }
 
   const prisma = getPrisma();
-  const membership = await prisma.farmMembership.findFirst({
-    where: { userId: session.userId },
-    include: { farm: true },
-    orderBy: { createdAt: "asc" },
-  });
+  const membership = await getFarmMembershipForUser(session.userId);
 
   if (!membership) {
     redirect("/login");
@@ -181,12 +186,9 @@ export async function requireFarmMutationAccess(farmId: string) {
   const session = await getCurrentSession();
   if (!session) redirect("/login");
 
-  const membership = await getPrisma().farmMembership.findFirst({
-    where: { userId: session.userId, farmId },
-    select: { role: true },
-  });
+  const membership = await getFarmMembershipForUser(session.userId);
 
-  if (!membership) {
+  if (!membership || membership.farmId !== farmId) {
     throw new Error("You do not have access to this farm.");
   }
 
