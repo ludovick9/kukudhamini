@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useState } from "react";
+import { useActionState, useCallback, useEffect, useState, type FormEvent } from "react";
 import {
   ArrowRight,
   CalendarDays,
@@ -33,11 +33,43 @@ import {
   updateBatchAction,
   type BatchActionState,
 } from "@/app/batches/actions";
+import { batchInputSchema } from "@/lib/validation/database";
+import { createLocalRecordId } from "@/lib/offline/db";
+import { getOfflineRecords, probeServer, queueOfflineMutation } from "@/lib/offline/sync";
 
 const emptyState: BatchActionState = {
   ok: false,
   message: "",
 };
+
+type DisplayBatch = Batch & { syncStatus?: "pending" | "syncing" | "failed" | "synced" };
+
+function localBatchFromRecord(record: { localId: string; data: Record<string, unknown>; syncStatus: DisplayBatch["syncStatus"] }): DisplayBatch {
+  const data = record.data;
+  const arrivalDate = String(data.arrivalDate);
+  const harvestDate = String(data.expectedHarvestDate);
+  const initialBirds = Number(data.initialBirdCount);
+  const status = String(data.status).toLowerCase() as Batch["status"];
+  const today = Date.now();
+  const arrival = new Date(arrivalDate).getTime();
+  const harvest = new Date(harvestDate).getTime();
+  return {
+    id: record.localId,
+    code: String(data.name).toUpperCase().replaceAll(" ", "-"),
+    name: String(data.name),
+    breed: String(data.breed),
+    arrivalDate: arrivalDate.slice(0, 10),
+    ageDays: Number.isFinite(arrival) ? Math.max(0, Math.floor((today - arrival) / 86400000)) : 0,
+    initialBirds,
+    currentBirds: initialBirds,
+    mortality: 0,
+    mortalityRate: 0,
+    harvestDate: harvestDate.slice(0, 10),
+    daysRemaining: Number.isFinite(harvest) ? Math.max(0, Math.ceil((harvest - today) / 86400000)) : 0,
+    status,
+    syncStatus: record.syncStatus,
+  };
+}
 
 function statusTone(status: Batch["status"]) {
   return status === "active"
@@ -82,6 +114,7 @@ export function BatchForm({
     action,
     emptyState,
   );
+  const [offlineMessage, setOfflineMessage] = useState("");
 
   const inputError = (field: string) =>
     state.fieldErrors?.[field];
@@ -92,6 +125,37 @@ export function BatchForm({
 
   const existingNotes =
     batch && "notes" in batch ? batch.notes : "";
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    void (async () => {
+      if (await probeServer()) {
+        formAction(formData);
+        return;
+      }
+      const payload = {
+        name: String(formData.get("name") ?? ""),
+        breed: String(formData.get("breed") ?? ""),
+        arrivalDate: String(formData.get("arrivalDate") ?? ""),
+        initialBirdCount: String(formData.get("initialBirdCount") ?? ""),
+        expectedHarvestDate: String(formData.get("expectedHarvestDate") ?? ""),
+        status: String(formData.get("status") ?? "ACTIVE"),
+        notes: String(formData.get("notes") ?? "") || undefined,
+      };
+      const validation = batchInputSchema.safeParse(payload);
+      if (!validation.success) {
+        setOfflineMessage(validation.error.issues[0]?.message ?? "Please review the batch details.");
+        return;
+      }
+      if (batch) {
+        setOfflineMessage("Editing batches offline is not available yet.");
+        return;
+      }
+      await queueOfflineMutation({ farmId: farm.id, entity: "batch", operation: "create", localId: createLocalRecordId(), payload });
+      setOfflineMessage("Batch saved on this device. It will sync when you're online.");
+    })();
+  }
 
   return (
     <Card
@@ -127,9 +191,9 @@ export function BatchForm({
         )}
       </div>
 
-      <Feedback state={state} />
+      <Feedback state={offlineMessage ? { ok: true, message: offlineMessage } : state} />
 
-      <form action={formAction} className="batch-form">
+      <form action={formAction} className="batch-form" onSubmitCapture={(event) => { void handleSubmit(event); }}>
         <input
           type="hidden"
           name="batchId"
@@ -280,7 +344,7 @@ function BatchRow({
   onStatus,
   onDelete,
 }: {
-  batch: Batch;
+  batch: DisplayBatch;
   onEdit: (batch: Batch) => void;
   onStatus: (
     batch: Batch,
@@ -368,6 +432,10 @@ function BatchRow({
         {statusLabel(batch.status)}
       </Badge>
 
+      {batch.syncStatus && batch.syncStatus !== "synced" && (
+        <span className="badge badge-amber">Pending sync</span>
+      )}
+
       <div className="batch-row-actions">
         <Link
           href={`/batches/${batch.id}`}
@@ -431,6 +499,20 @@ export function BatchManager({
   farm: Farm;
 }) {
   const [query, setQuery] = useState("");
+  const [localBatches, setLocalBatches] = useState<DisplayBatch[]>([]);
+
+  const refreshLocalBatches = useCallback(async () => {
+    const records = await getOfflineRecords(farm.id, "batch");
+    setLocalBatches(records.map((record) => localBatchFromRecord(record)));
+  }, [farm.id]);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => void refreshLocalBatches(), 0);
+    window.addEventListener("kukudhamini-sync-change", refreshLocalBatches);
+    return () => { window.clearTimeout(timer); window.removeEventListener("kukudhamini-sync-change", refreshLocalBatches); };
+  }, [refreshLocalBatches]);
+
+  const allBatches: DisplayBatch[] = [...batches, ...localBatches.filter((localBatch) => !batches.some((batch) => batch.id === localBatch.id))];
 
   const [statusFilter, setStatusFilter] =
     useState<Batch["status"] | "all">("all");
@@ -468,7 +550,7 @@ export function BatchManager({
     emptyState,
   );
 
-  const filtered = batches.filter((batch) => {
+  const filtered = allBatches.filter((batch) => {
     const matchesQuery =
       `${batch.code} ${batch.name} ${batch.breed}`
         .toLowerCase()
@@ -481,11 +563,11 @@ export function BatchManager({
     );
   });
 
-  const activeCount = batches.filter(
+  const activeCount = allBatches.filter(
     (batch) => batch.status === "active",
   ).length;
 
-  const totalBirds = batches
+  const totalBirds = allBatches
     .filter((batch) => batch.status === "active")
     .reduce(
       (sum, batch) => sum + batch.currentBirds,
@@ -542,7 +624,7 @@ export function BatchManager({
           <span>Nearest harvest</span>
 
           <strong>
-            {batches
+            {allBatches
               .filter(
                 (batch) => batch.status === "active",
               )

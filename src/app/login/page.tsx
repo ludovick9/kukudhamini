@@ -5,6 +5,7 @@ import { Check, Eye, EyeOff, Leaf, LockKeyhole, Mail, ShieldCheck, Sprout } from
 import { useActionState, useState } from "react";
 import { useLanguage } from "@/lib/i18n/language-provider";
 import { loginAction, type AuthActionState } from "@/app/login/actions";
+import { BrandLogo } from "@/components/brand-logo";
 
 const emptyState: AuthActionState = { ok: false, message: "" };
 
@@ -16,7 +17,7 @@ export default function LoginPage() {
   return <main className="auth-page">
     <section className="auth-visual" aria-label={t.auth.brandDescription}>
       <div className="auth-visual-glow" />
-      <div className="auth-brand-row"><div className="auth-logo"><span>🐔</span></div><div><strong>Kuku<span>Dhamini</span></strong><small>{t.auth.brandTagline}</small></div></div>
+      <div className="auth-brand-row"><BrandLogo className="auth-brand-logo" /><div><strong>Kuku<span>Dhamini</span></strong><small>{t.auth.brandTagline}</small></div></div>
       <div className="auth-visual-content"><p className="auth-kicker"><Sprout size={15} /> {t.auth.secureAccess}</p><h2>Run a healthier, more profitable flock.</h2><p>{t.auth.brandDescription}</p><ul>{[t.auth.trackBatches, t.auth.monitorHealth, t.auth.manageCosts, t.auth.followMoney].map((item) => <li key={item}><Check size={15} />{item}</li>)}</ul></div>
       <div className="auth-visual-footer"><Leaf size={15} /> Built for the daily rhythm of poultry farming.</div>
     </section>

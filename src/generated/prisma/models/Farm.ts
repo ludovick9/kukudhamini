@@ -211,6 +211,7 @@ export type FarmWhereInput = {
   sales?: Prisma.SaleListRelationFilter
   payments?: Prisma.PaymentListRelationFilter
   notifications?: Prisma.NotificationListRelationFilter
+  syncOperations?: Prisma.SyncOperationListRelationFilter
 }
 
 export type FarmOrderByWithRelationInput = {
@@ -234,6 +235,7 @@ export type FarmOrderByWithRelationInput = {
   sales?: Prisma.SaleOrderByRelationAggregateInput
   payments?: Prisma.PaymentOrderByRelationAggregateInput
   notifications?: Prisma.NotificationOrderByRelationAggregateInput
+  syncOperations?: Prisma.SyncOperationOrderByRelationAggregateInput
 }
 
 export type FarmWhereUniqueInput = Prisma.AtLeast<{
@@ -260,6 +262,7 @@ export type FarmWhereUniqueInput = Prisma.AtLeast<{
   sales?: Prisma.SaleListRelationFilter
   payments?: Prisma.PaymentListRelationFilter
   notifications?: Prisma.NotificationListRelationFilter
+  syncOperations?: Prisma.SyncOperationListRelationFilter
 }, "id">
 
 export type FarmOrderByWithAggregationInput = {
@@ -309,6 +312,7 @@ export type FarmCreateInput = {
   sales?: Prisma.SaleCreateNestedManyWithoutFarmInput
   payments?: Prisma.PaymentCreateNestedManyWithoutFarmInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutFarmInput
+  syncOperations?: Prisma.SyncOperationCreateNestedManyWithoutFarmInput
 }
 
 export type FarmUncheckedCreateInput = {
@@ -332,6 +336,7 @@ export type FarmUncheckedCreateInput = {
   sales?: Prisma.SaleUncheckedCreateNestedManyWithoutFarmInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutFarmInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutFarmInput
+  syncOperations?: Prisma.SyncOperationUncheckedCreateNestedManyWithoutFarmInput
 }
 
 export type FarmUpdateInput = {
@@ -355,6 +360,7 @@ export type FarmUpdateInput = {
   sales?: Prisma.SaleUpdateManyWithoutFarmNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutFarmNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutFarmNestedInput
+  syncOperations?: Prisma.SyncOperationUpdateManyWithoutFarmNestedInput
 }
 
 export type FarmUncheckedUpdateInput = {
@@ -378,6 +384,7 @@ export type FarmUncheckedUpdateInput = {
   sales?: Prisma.SaleUncheckedUpdateManyWithoutFarmNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutFarmNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutFarmNestedInput
+  syncOperations?: Prisma.SyncOperationUncheckedUpdateManyWithoutFarmNestedInput
 }
 
 export type FarmCreateManyInput = {
@@ -443,6 +450,20 @@ export type FarmMinOrderByAggregateInput = {
 export type FarmScalarRelationFilter = {
   is?: Prisma.FarmWhereInput
   isNot?: Prisma.FarmWhereInput
+}
+
+export type FarmCreateNestedOneWithoutSyncOperationsInput = {
+  create?: Prisma.XOR<Prisma.FarmCreateWithoutSyncOperationsInput, Prisma.FarmUncheckedCreateWithoutSyncOperationsInput>
+  connectOrCreate?: Prisma.FarmCreateOrConnectWithoutSyncOperationsInput
+  connect?: Prisma.FarmWhereUniqueInput
+}
+
+export type FarmUpdateOneRequiredWithoutSyncOperationsNestedInput = {
+  create?: Prisma.XOR<Prisma.FarmCreateWithoutSyncOperationsInput, Prisma.FarmUncheckedCreateWithoutSyncOperationsInput>
+  connectOrCreate?: Prisma.FarmCreateOrConnectWithoutSyncOperationsInput
+  upsert?: Prisma.FarmUpsertWithoutSyncOperationsInput
+  connect?: Prisma.FarmWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.FarmUpdateToOneWithWhereWithoutSyncOperationsInput, Prisma.FarmUpdateWithoutSyncOperationsInput>, Prisma.FarmUncheckedUpdateWithoutSyncOperationsInput>
 }
 
 export type FarmCreateNestedOneWithoutMembershipsInput = {
@@ -627,6 +648,114 @@ export type FarmUpdateOneRequiredWithoutPaymentsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.FarmUpdateToOneWithWhereWithoutPaymentsInput, Prisma.FarmUpdateWithoutPaymentsInput>, Prisma.FarmUncheckedUpdateWithoutPaymentsInput>
 }
 
+export type FarmCreateWithoutSyncOperationsInput = {
+  id?: string
+  name: string
+  location: string
+  currency?: string
+  timezone?: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  memberships?: Prisma.FarmMembershipCreateNestedManyWithoutFarmInput
+  batches?: Prisma.BatchCreateNestedManyWithoutFarmInput
+  expenseCategories?: Prisma.ExpenseCategoryCreateNestedManyWithoutFarmInput
+  suppliers?: Prisma.SupplierCreateNestedManyWithoutFarmInput
+  expenses?: Prisma.ExpenseCreateNestedManyWithoutFarmInput
+  feedProducts?: Prisma.FeedProductCreateNestedManyWithoutFarmInput
+  feedTransactions?: Prisma.FeedTransactionCreateNestedManyWithoutFarmInput
+  healthTasks?: Prisma.HealthTaskCreateNestedManyWithoutFarmInput
+  mortalityRecords?: Prisma.MortalityRecordCreateNestedManyWithoutFarmInput
+  customers?: Prisma.CustomerCreateNestedManyWithoutFarmInput
+  sales?: Prisma.SaleCreateNestedManyWithoutFarmInput
+  payments?: Prisma.PaymentCreateNestedManyWithoutFarmInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutFarmInput
+}
+
+export type FarmUncheckedCreateWithoutSyncOperationsInput = {
+  id?: string
+  name: string
+  location: string
+  currency?: string
+  timezone?: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  memberships?: Prisma.FarmMembershipUncheckedCreateNestedManyWithoutFarmInput
+  batches?: Prisma.BatchUncheckedCreateNestedManyWithoutFarmInput
+  expenseCategories?: Prisma.ExpenseCategoryUncheckedCreateNestedManyWithoutFarmInput
+  suppliers?: Prisma.SupplierUncheckedCreateNestedManyWithoutFarmInput
+  expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutFarmInput
+  feedProducts?: Prisma.FeedProductUncheckedCreateNestedManyWithoutFarmInput
+  feedTransactions?: Prisma.FeedTransactionUncheckedCreateNestedManyWithoutFarmInput
+  healthTasks?: Prisma.HealthTaskUncheckedCreateNestedManyWithoutFarmInput
+  mortalityRecords?: Prisma.MortalityRecordUncheckedCreateNestedManyWithoutFarmInput
+  customers?: Prisma.CustomerUncheckedCreateNestedManyWithoutFarmInput
+  sales?: Prisma.SaleUncheckedCreateNestedManyWithoutFarmInput
+  payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutFarmInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutFarmInput
+}
+
+export type FarmCreateOrConnectWithoutSyncOperationsInput = {
+  where: Prisma.FarmWhereUniqueInput
+  create: Prisma.XOR<Prisma.FarmCreateWithoutSyncOperationsInput, Prisma.FarmUncheckedCreateWithoutSyncOperationsInput>
+}
+
+export type FarmUpsertWithoutSyncOperationsInput = {
+  update: Prisma.XOR<Prisma.FarmUpdateWithoutSyncOperationsInput, Prisma.FarmUncheckedUpdateWithoutSyncOperationsInput>
+  create: Prisma.XOR<Prisma.FarmCreateWithoutSyncOperationsInput, Prisma.FarmUncheckedCreateWithoutSyncOperationsInput>
+  where?: Prisma.FarmWhereInput
+}
+
+export type FarmUpdateToOneWithWhereWithoutSyncOperationsInput = {
+  where?: Prisma.FarmWhereInput
+  data: Prisma.XOR<Prisma.FarmUpdateWithoutSyncOperationsInput, Prisma.FarmUncheckedUpdateWithoutSyncOperationsInput>
+}
+
+export type FarmUpdateWithoutSyncOperationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  location?: Prisma.StringFieldUpdateOperationsInput | string
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  memberships?: Prisma.FarmMembershipUpdateManyWithoutFarmNestedInput
+  batches?: Prisma.BatchUpdateManyWithoutFarmNestedInput
+  expenseCategories?: Prisma.ExpenseCategoryUpdateManyWithoutFarmNestedInput
+  suppliers?: Prisma.SupplierUpdateManyWithoutFarmNestedInput
+  expenses?: Prisma.ExpenseUpdateManyWithoutFarmNestedInput
+  feedProducts?: Prisma.FeedProductUpdateManyWithoutFarmNestedInput
+  feedTransactions?: Prisma.FeedTransactionUpdateManyWithoutFarmNestedInput
+  healthTasks?: Prisma.HealthTaskUpdateManyWithoutFarmNestedInput
+  mortalityRecords?: Prisma.MortalityRecordUpdateManyWithoutFarmNestedInput
+  customers?: Prisma.CustomerUpdateManyWithoutFarmNestedInput
+  sales?: Prisma.SaleUpdateManyWithoutFarmNestedInput
+  payments?: Prisma.PaymentUpdateManyWithoutFarmNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutFarmNestedInput
+}
+
+export type FarmUncheckedUpdateWithoutSyncOperationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  location?: Prisma.StringFieldUpdateOperationsInput | string
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  memberships?: Prisma.FarmMembershipUncheckedUpdateManyWithoutFarmNestedInput
+  batches?: Prisma.BatchUncheckedUpdateManyWithoutFarmNestedInput
+  expenseCategories?: Prisma.ExpenseCategoryUncheckedUpdateManyWithoutFarmNestedInput
+  suppliers?: Prisma.SupplierUncheckedUpdateManyWithoutFarmNestedInput
+  expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutFarmNestedInput
+  feedProducts?: Prisma.FeedProductUncheckedUpdateManyWithoutFarmNestedInput
+  feedTransactions?: Prisma.FeedTransactionUncheckedUpdateManyWithoutFarmNestedInput
+  healthTasks?: Prisma.HealthTaskUncheckedUpdateManyWithoutFarmNestedInput
+  mortalityRecords?: Prisma.MortalityRecordUncheckedUpdateManyWithoutFarmNestedInput
+  customers?: Prisma.CustomerUncheckedUpdateManyWithoutFarmNestedInput
+  sales?: Prisma.SaleUncheckedUpdateManyWithoutFarmNestedInput
+  payments?: Prisma.PaymentUncheckedUpdateManyWithoutFarmNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutFarmNestedInput
+}
+
 export type FarmCreateWithoutMembershipsInput = {
   id?: string
   name: string
@@ -647,6 +776,7 @@ export type FarmCreateWithoutMembershipsInput = {
   sales?: Prisma.SaleCreateNestedManyWithoutFarmInput
   payments?: Prisma.PaymentCreateNestedManyWithoutFarmInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutFarmInput
+  syncOperations?: Prisma.SyncOperationCreateNestedManyWithoutFarmInput
 }
 
 export type FarmUncheckedCreateWithoutMembershipsInput = {
@@ -669,6 +799,7 @@ export type FarmUncheckedCreateWithoutMembershipsInput = {
   sales?: Prisma.SaleUncheckedCreateNestedManyWithoutFarmInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutFarmInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutFarmInput
+  syncOperations?: Prisma.SyncOperationUncheckedCreateNestedManyWithoutFarmInput
 }
 
 export type FarmCreateOrConnectWithoutMembershipsInput = {
@@ -707,6 +838,7 @@ export type FarmUpdateWithoutMembershipsInput = {
   sales?: Prisma.SaleUpdateManyWithoutFarmNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutFarmNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutFarmNestedInput
+  syncOperations?: Prisma.SyncOperationUpdateManyWithoutFarmNestedInput
 }
 
 export type FarmUncheckedUpdateWithoutMembershipsInput = {
@@ -729,6 +861,7 @@ export type FarmUncheckedUpdateWithoutMembershipsInput = {
   sales?: Prisma.SaleUncheckedUpdateManyWithoutFarmNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutFarmNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutFarmNestedInput
+  syncOperations?: Prisma.SyncOperationUncheckedUpdateManyWithoutFarmNestedInput
 }
 
 export type FarmCreateWithoutBatchesInput = {
@@ -751,6 +884,7 @@ export type FarmCreateWithoutBatchesInput = {
   sales?: Prisma.SaleCreateNestedManyWithoutFarmInput
   payments?: Prisma.PaymentCreateNestedManyWithoutFarmInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutFarmInput
+  syncOperations?: Prisma.SyncOperationCreateNestedManyWithoutFarmInput
 }
 
 export type FarmUncheckedCreateWithoutBatchesInput = {
@@ -773,6 +907,7 @@ export type FarmUncheckedCreateWithoutBatchesInput = {
   sales?: Prisma.SaleUncheckedCreateNestedManyWithoutFarmInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutFarmInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutFarmInput
+  syncOperations?: Prisma.SyncOperationUncheckedCreateNestedManyWithoutFarmInput
 }
 
 export type FarmCreateOrConnectWithoutBatchesInput = {
@@ -811,6 +946,7 @@ export type FarmUpdateWithoutBatchesInput = {
   sales?: Prisma.SaleUpdateManyWithoutFarmNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutFarmNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutFarmNestedInput
+  syncOperations?: Prisma.SyncOperationUpdateManyWithoutFarmNestedInput
 }
 
 export type FarmUncheckedUpdateWithoutBatchesInput = {
@@ -833,6 +969,7 @@ export type FarmUncheckedUpdateWithoutBatchesInput = {
   sales?: Prisma.SaleUncheckedUpdateManyWithoutFarmNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutFarmNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutFarmNestedInput
+  syncOperations?: Prisma.SyncOperationUncheckedUpdateManyWithoutFarmNestedInput
 }
 
 export type FarmCreateWithoutExpenseCategoriesInput = {
@@ -855,6 +992,7 @@ export type FarmCreateWithoutExpenseCategoriesInput = {
   sales?: Prisma.SaleCreateNestedManyWithoutFarmInput
   payments?: Prisma.PaymentCreateNestedManyWithoutFarmInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutFarmInput
+  syncOperations?: Prisma.SyncOperationCreateNestedManyWithoutFarmInput
 }
 
 export type FarmUncheckedCreateWithoutExpenseCategoriesInput = {
@@ -877,6 +1015,7 @@ export type FarmUncheckedCreateWithoutExpenseCategoriesInput = {
   sales?: Prisma.SaleUncheckedCreateNestedManyWithoutFarmInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutFarmInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutFarmInput
+  syncOperations?: Prisma.SyncOperationUncheckedCreateNestedManyWithoutFarmInput
 }
 
 export type FarmCreateOrConnectWithoutExpenseCategoriesInput = {
@@ -915,6 +1054,7 @@ export type FarmUpdateWithoutExpenseCategoriesInput = {
   sales?: Prisma.SaleUpdateManyWithoutFarmNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutFarmNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutFarmNestedInput
+  syncOperations?: Prisma.SyncOperationUpdateManyWithoutFarmNestedInput
 }
 
 export type FarmUncheckedUpdateWithoutExpenseCategoriesInput = {
@@ -937,6 +1077,7 @@ export type FarmUncheckedUpdateWithoutExpenseCategoriesInput = {
   sales?: Prisma.SaleUncheckedUpdateManyWithoutFarmNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutFarmNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutFarmNestedInput
+  syncOperations?: Prisma.SyncOperationUncheckedUpdateManyWithoutFarmNestedInput
 }
 
 export type FarmCreateWithoutSuppliersInput = {
@@ -959,6 +1100,7 @@ export type FarmCreateWithoutSuppliersInput = {
   sales?: Prisma.SaleCreateNestedManyWithoutFarmInput
   payments?: Prisma.PaymentCreateNestedManyWithoutFarmInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutFarmInput
+  syncOperations?: Prisma.SyncOperationCreateNestedManyWithoutFarmInput
 }
 
 export type FarmUncheckedCreateWithoutSuppliersInput = {
@@ -981,6 +1123,7 @@ export type FarmUncheckedCreateWithoutSuppliersInput = {
   sales?: Prisma.SaleUncheckedCreateNestedManyWithoutFarmInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutFarmInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutFarmInput
+  syncOperations?: Prisma.SyncOperationUncheckedCreateNestedManyWithoutFarmInput
 }
 
 export type FarmCreateOrConnectWithoutSuppliersInput = {
@@ -1019,6 +1162,7 @@ export type FarmUpdateWithoutSuppliersInput = {
   sales?: Prisma.SaleUpdateManyWithoutFarmNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutFarmNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutFarmNestedInput
+  syncOperations?: Prisma.SyncOperationUpdateManyWithoutFarmNestedInput
 }
 
 export type FarmUncheckedUpdateWithoutSuppliersInput = {
@@ -1041,6 +1185,7 @@ export type FarmUncheckedUpdateWithoutSuppliersInput = {
   sales?: Prisma.SaleUncheckedUpdateManyWithoutFarmNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutFarmNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutFarmNestedInput
+  syncOperations?: Prisma.SyncOperationUncheckedUpdateManyWithoutFarmNestedInput
 }
 
 export type FarmCreateWithoutExpensesInput = {
@@ -1063,6 +1208,7 @@ export type FarmCreateWithoutExpensesInput = {
   sales?: Prisma.SaleCreateNestedManyWithoutFarmInput
   payments?: Prisma.PaymentCreateNestedManyWithoutFarmInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutFarmInput
+  syncOperations?: Prisma.SyncOperationCreateNestedManyWithoutFarmInput
 }
 
 export type FarmUncheckedCreateWithoutExpensesInput = {
@@ -1085,6 +1231,7 @@ export type FarmUncheckedCreateWithoutExpensesInput = {
   sales?: Prisma.SaleUncheckedCreateNestedManyWithoutFarmInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutFarmInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutFarmInput
+  syncOperations?: Prisma.SyncOperationUncheckedCreateNestedManyWithoutFarmInput
 }
 
 export type FarmCreateOrConnectWithoutExpensesInput = {
@@ -1123,6 +1270,7 @@ export type FarmUpdateWithoutExpensesInput = {
   sales?: Prisma.SaleUpdateManyWithoutFarmNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutFarmNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutFarmNestedInput
+  syncOperations?: Prisma.SyncOperationUpdateManyWithoutFarmNestedInput
 }
 
 export type FarmUncheckedUpdateWithoutExpensesInput = {
@@ -1145,6 +1293,7 @@ export type FarmUncheckedUpdateWithoutExpensesInput = {
   sales?: Prisma.SaleUncheckedUpdateManyWithoutFarmNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutFarmNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutFarmNestedInput
+  syncOperations?: Prisma.SyncOperationUncheckedUpdateManyWithoutFarmNestedInput
 }
 
 export type FarmCreateWithoutFeedProductsInput = {
@@ -1167,6 +1316,7 @@ export type FarmCreateWithoutFeedProductsInput = {
   sales?: Prisma.SaleCreateNestedManyWithoutFarmInput
   payments?: Prisma.PaymentCreateNestedManyWithoutFarmInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutFarmInput
+  syncOperations?: Prisma.SyncOperationCreateNestedManyWithoutFarmInput
 }
 
 export type FarmUncheckedCreateWithoutFeedProductsInput = {
@@ -1189,6 +1339,7 @@ export type FarmUncheckedCreateWithoutFeedProductsInput = {
   sales?: Prisma.SaleUncheckedCreateNestedManyWithoutFarmInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutFarmInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutFarmInput
+  syncOperations?: Prisma.SyncOperationUncheckedCreateNestedManyWithoutFarmInput
 }
 
 export type FarmCreateOrConnectWithoutFeedProductsInput = {
@@ -1227,6 +1378,7 @@ export type FarmUpdateWithoutFeedProductsInput = {
   sales?: Prisma.SaleUpdateManyWithoutFarmNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutFarmNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutFarmNestedInput
+  syncOperations?: Prisma.SyncOperationUpdateManyWithoutFarmNestedInput
 }
 
 export type FarmUncheckedUpdateWithoutFeedProductsInput = {
@@ -1249,6 +1401,7 @@ export type FarmUncheckedUpdateWithoutFeedProductsInput = {
   sales?: Prisma.SaleUncheckedUpdateManyWithoutFarmNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutFarmNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutFarmNestedInput
+  syncOperations?: Prisma.SyncOperationUncheckedUpdateManyWithoutFarmNestedInput
 }
 
 export type FarmCreateWithoutFeedTransactionsInput = {
@@ -1271,6 +1424,7 @@ export type FarmCreateWithoutFeedTransactionsInput = {
   sales?: Prisma.SaleCreateNestedManyWithoutFarmInput
   payments?: Prisma.PaymentCreateNestedManyWithoutFarmInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutFarmInput
+  syncOperations?: Prisma.SyncOperationCreateNestedManyWithoutFarmInput
 }
 
 export type FarmUncheckedCreateWithoutFeedTransactionsInput = {
@@ -1293,6 +1447,7 @@ export type FarmUncheckedCreateWithoutFeedTransactionsInput = {
   sales?: Prisma.SaleUncheckedCreateNestedManyWithoutFarmInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutFarmInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutFarmInput
+  syncOperations?: Prisma.SyncOperationUncheckedCreateNestedManyWithoutFarmInput
 }
 
 export type FarmCreateOrConnectWithoutFeedTransactionsInput = {
@@ -1331,6 +1486,7 @@ export type FarmUpdateWithoutFeedTransactionsInput = {
   sales?: Prisma.SaleUpdateManyWithoutFarmNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutFarmNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutFarmNestedInput
+  syncOperations?: Prisma.SyncOperationUpdateManyWithoutFarmNestedInput
 }
 
 export type FarmUncheckedUpdateWithoutFeedTransactionsInput = {
@@ -1353,6 +1509,7 @@ export type FarmUncheckedUpdateWithoutFeedTransactionsInput = {
   sales?: Prisma.SaleUncheckedUpdateManyWithoutFarmNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutFarmNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutFarmNestedInput
+  syncOperations?: Prisma.SyncOperationUncheckedUpdateManyWithoutFarmNestedInput
 }
 
 export type FarmCreateWithoutHealthTasksInput = {
@@ -1375,6 +1532,7 @@ export type FarmCreateWithoutHealthTasksInput = {
   sales?: Prisma.SaleCreateNestedManyWithoutFarmInput
   payments?: Prisma.PaymentCreateNestedManyWithoutFarmInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutFarmInput
+  syncOperations?: Prisma.SyncOperationCreateNestedManyWithoutFarmInput
 }
 
 export type FarmUncheckedCreateWithoutHealthTasksInput = {
@@ -1397,6 +1555,7 @@ export type FarmUncheckedCreateWithoutHealthTasksInput = {
   sales?: Prisma.SaleUncheckedCreateNestedManyWithoutFarmInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutFarmInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutFarmInput
+  syncOperations?: Prisma.SyncOperationUncheckedCreateNestedManyWithoutFarmInput
 }
 
 export type FarmCreateOrConnectWithoutHealthTasksInput = {
@@ -1435,6 +1594,7 @@ export type FarmUpdateWithoutHealthTasksInput = {
   sales?: Prisma.SaleUpdateManyWithoutFarmNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutFarmNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutFarmNestedInput
+  syncOperations?: Prisma.SyncOperationUpdateManyWithoutFarmNestedInput
 }
 
 export type FarmUncheckedUpdateWithoutHealthTasksInput = {
@@ -1457,6 +1617,7 @@ export type FarmUncheckedUpdateWithoutHealthTasksInput = {
   sales?: Prisma.SaleUncheckedUpdateManyWithoutFarmNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutFarmNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutFarmNestedInput
+  syncOperations?: Prisma.SyncOperationUncheckedUpdateManyWithoutFarmNestedInput
 }
 
 export type FarmCreateWithoutMortalityRecordsInput = {
@@ -1479,6 +1640,7 @@ export type FarmCreateWithoutMortalityRecordsInput = {
   sales?: Prisma.SaleCreateNestedManyWithoutFarmInput
   payments?: Prisma.PaymentCreateNestedManyWithoutFarmInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutFarmInput
+  syncOperations?: Prisma.SyncOperationCreateNestedManyWithoutFarmInput
 }
 
 export type FarmUncheckedCreateWithoutMortalityRecordsInput = {
@@ -1501,6 +1663,7 @@ export type FarmUncheckedCreateWithoutMortalityRecordsInput = {
   sales?: Prisma.SaleUncheckedCreateNestedManyWithoutFarmInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutFarmInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutFarmInput
+  syncOperations?: Prisma.SyncOperationUncheckedCreateNestedManyWithoutFarmInput
 }
 
 export type FarmCreateOrConnectWithoutMortalityRecordsInput = {
@@ -1539,6 +1702,7 @@ export type FarmUpdateWithoutMortalityRecordsInput = {
   sales?: Prisma.SaleUpdateManyWithoutFarmNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutFarmNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutFarmNestedInput
+  syncOperations?: Prisma.SyncOperationUpdateManyWithoutFarmNestedInput
 }
 
 export type FarmUncheckedUpdateWithoutMortalityRecordsInput = {
@@ -1561,6 +1725,7 @@ export type FarmUncheckedUpdateWithoutMortalityRecordsInput = {
   sales?: Prisma.SaleUncheckedUpdateManyWithoutFarmNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutFarmNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutFarmNestedInput
+  syncOperations?: Prisma.SyncOperationUncheckedUpdateManyWithoutFarmNestedInput
 }
 
 export type FarmCreateWithoutCustomersInput = {
@@ -1583,6 +1748,7 @@ export type FarmCreateWithoutCustomersInput = {
   sales?: Prisma.SaleCreateNestedManyWithoutFarmInput
   payments?: Prisma.PaymentCreateNestedManyWithoutFarmInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutFarmInput
+  syncOperations?: Prisma.SyncOperationCreateNestedManyWithoutFarmInput
 }
 
 export type FarmUncheckedCreateWithoutCustomersInput = {
@@ -1605,6 +1771,7 @@ export type FarmUncheckedCreateWithoutCustomersInput = {
   sales?: Prisma.SaleUncheckedCreateNestedManyWithoutFarmInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutFarmInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutFarmInput
+  syncOperations?: Prisma.SyncOperationUncheckedCreateNestedManyWithoutFarmInput
 }
 
 export type FarmCreateOrConnectWithoutCustomersInput = {
@@ -1643,6 +1810,7 @@ export type FarmUpdateWithoutCustomersInput = {
   sales?: Prisma.SaleUpdateManyWithoutFarmNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutFarmNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutFarmNestedInput
+  syncOperations?: Prisma.SyncOperationUpdateManyWithoutFarmNestedInput
 }
 
 export type FarmUncheckedUpdateWithoutCustomersInput = {
@@ -1665,6 +1833,7 @@ export type FarmUncheckedUpdateWithoutCustomersInput = {
   sales?: Prisma.SaleUncheckedUpdateManyWithoutFarmNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutFarmNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutFarmNestedInput
+  syncOperations?: Prisma.SyncOperationUncheckedUpdateManyWithoutFarmNestedInput
 }
 
 export type FarmCreateWithoutSalesInput = {
@@ -1687,6 +1856,7 @@ export type FarmCreateWithoutSalesInput = {
   customers?: Prisma.CustomerCreateNestedManyWithoutFarmInput
   payments?: Prisma.PaymentCreateNestedManyWithoutFarmInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutFarmInput
+  syncOperations?: Prisma.SyncOperationCreateNestedManyWithoutFarmInput
 }
 
 export type FarmUncheckedCreateWithoutSalesInput = {
@@ -1709,6 +1879,7 @@ export type FarmUncheckedCreateWithoutSalesInput = {
   customers?: Prisma.CustomerUncheckedCreateNestedManyWithoutFarmInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutFarmInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutFarmInput
+  syncOperations?: Prisma.SyncOperationUncheckedCreateNestedManyWithoutFarmInput
 }
 
 export type FarmCreateOrConnectWithoutSalesInput = {
@@ -1747,6 +1918,7 @@ export type FarmUpdateWithoutSalesInput = {
   customers?: Prisma.CustomerUpdateManyWithoutFarmNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutFarmNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutFarmNestedInput
+  syncOperations?: Prisma.SyncOperationUpdateManyWithoutFarmNestedInput
 }
 
 export type FarmUncheckedUpdateWithoutSalesInput = {
@@ -1769,6 +1941,7 @@ export type FarmUncheckedUpdateWithoutSalesInput = {
   customers?: Prisma.CustomerUncheckedUpdateManyWithoutFarmNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutFarmNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutFarmNestedInput
+  syncOperations?: Prisma.SyncOperationUncheckedUpdateManyWithoutFarmNestedInput
 }
 
 export type FarmCreateWithoutNotificationsInput = {
@@ -1791,6 +1964,7 @@ export type FarmCreateWithoutNotificationsInput = {
   customers?: Prisma.CustomerCreateNestedManyWithoutFarmInput
   sales?: Prisma.SaleCreateNestedManyWithoutFarmInput
   payments?: Prisma.PaymentCreateNestedManyWithoutFarmInput
+  syncOperations?: Prisma.SyncOperationCreateNestedManyWithoutFarmInput
 }
 
 export type FarmUncheckedCreateWithoutNotificationsInput = {
@@ -1813,6 +1987,7 @@ export type FarmUncheckedCreateWithoutNotificationsInput = {
   customers?: Prisma.CustomerUncheckedCreateNestedManyWithoutFarmInput
   sales?: Prisma.SaleUncheckedCreateNestedManyWithoutFarmInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutFarmInput
+  syncOperations?: Prisma.SyncOperationUncheckedCreateNestedManyWithoutFarmInput
 }
 
 export type FarmCreateOrConnectWithoutNotificationsInput = {
@@ -1851,6 +2026,7 @@ export type FarmUpdateWithoutNotificationsInput = {
   customers?: Prisma.CustomerUpdateManyWithoutFarmNestedInput
   sales?: Prisma.SaleUpdateManyWithoutFarmNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutFarmNestedInput
+  syncOperations?: Prisma.SyncOperationUpdateManyWithoutFarmNestedInput
 }
 
 export type FarmUncheckedUpdateWithoutNotificationsInput = {
@@ -1873,6 +2049,7 @@ export type FarmUncheckedUpdateWithoutNotificationsInput = {
   customers?: Prisma.CustomerUncheckedUpdateManyWithoutFarmNestedInput
   sales?: Prisma.SaleUncheckedUpdateManyWithoutFarmNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutFarmNestedInput
+  syncOperations?: Prisma.SyncOperationUncheckedUpdateManyWithoutFarmNestedInput
 }
 
 export type FarmCreateWithoutPaymentsInput = {
@@ -1895,6 +2072,7 @@ export type FarmCreateWithoutPaymentsInput = {
   customers?: Prisma.CustomerCreateNestedManyWithoutFarmInput
   sales?: Prisma.SaleCreateNestedManyWithoutFarmInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutFarmInput
+  syncOperations?: Prisma.SyncOperationCreateNestedManyWithoutFarmInput
 }
 
 export type FarmUncheckedCreateWithoutPaymentsInput = {
@@ -1917,6 +2095,7 @@ export type FarmUncheckedCreateWithoutPaymentsInput = {
   customers?: Prisma.CustomerUncheckedCreateNestedManyWithoutFarmInput
   sales?: Prisma.SaleUncheckedCreateNestedManyWithoutFarmInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutFarmInput
+  syncOperations?: Prisma.SyncOperationUncheckedCreateNestedManyWithoutFarmInput
 }
 
 export type FarmCreateOrConnectWithoutPaymentsInput = {
@@ -1955,6 +2134,7 @@ export type FarmUpdateWithoutPaymentsInput = {
   customers?: Prisma.CustomerUpdateManyWithoutFarmNestedInput
   sales?: Prisma.SaleUpdateManyWithoutFarmNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutFarmNestedInput
+  syncOperations?: Prisma.SyncOperationUpdateManyWithoutFarmNestedInput
 }
 
 export type FarmUncheckedUpdateWithoutPaymentsInput = {
@@ -1977,6 +2157,7 @@ export type FarmUncheckedUpdateWithoutPaymentsInput = {
   customers?: Prisma.CustomerUncheckedUpdateManyWithoutFarmNestedInput
   sales?: Prisma.SaleUncheckedUpdateManyWithoutFarmNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutFarmNestedInput
+  syncOperations?: Prisma.SyncOperationUncheckedUpdateManyWithoutFarmNestedInput
 }
 
 
@@ -1998,6 +2179,7 @@ export type FarmCountOutputType = {
   sales: number
   payments: number
   notifications: number
+  syncOperations: number
 }
 
 export type FarmCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2014,6 +2196,7 @@ export type FarmCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   sales?: boolean | FarmCountOutputTypeCountSalesArgs
   payments?: boolean | FarmCountOutputTypeCountPaymentsArgs
   notifications?: boolean | FarmCountOutputTypeCountNotificationsArgs
+  syncOperations?: boolean | FarmCountOutputTypeCountSyncOperationsArgs
 }
 
 /**
@@ -2117,6 +2300,13 @@ export type FarmCountOutputTypeCountNotificationsArgs<ExtArgs extends runtime.Ty
   where?: Prisma.NotificationWhereInput
 }
 
+/**
+ * FarmCountOutputType without action
+ */
+export type FarmCountOutputTypeCountSyncOperationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.SyncOperationWhereInput
+}
+
 
 export type FarmSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -2139,6 +2329,7 @@ export type FarmSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   sales?: boolean | Prisma.Farm$salesArgs<ExtArgs>
   payments?: boolean | Prisma.Farm$paymentsArgs<ExtArgs>
   notifications?: boolean | Prisma.Farm$notificationsArgs<ExtArgs>
+  syncOperations?: boolean | Prisma.Farm$syncOperationsArgs<ExtArgs>
   _count?: boolean | Prisma.FarmCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["farm"]>
 
@@ -2187,6 +2378,7 @@ export type FarmInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   sales?: boolean | Prisma.Farm$salesArgs<ExtArgs>
   payments?: boolean | Prisma.Farm$paymentsArgs<ExtArgs>
   notifications?: boolean | Prisma.Farm$notificationsArgs<ExtArgs>
+  syncOperations?: boolean | Prisma.Farm$syncOperationsArgs<ExtArgs>
   _count?: boolean | Prisma.FarmCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type FarmIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -2208,6 +2400,7 @@ export type $FarmPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     sales: Prisma.$SalePayload<ExtArgs>[]
     payments: Prisma.$PaymentPayload<ExtArgs>[]
     notifications: Prisma.$NotificationPayload<ExtArgs>[]
+    syncOperations: Prisma.$SyncOperationPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -2624,6 +2817,7 @@ export interface Prisma__FarmClient<T, Null = never, ExtArgs extends runtime.Typ
   sales<T extends Prisma.Farm$salesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Farm$salesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SalePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   payments<T extends Prisma.Farm$paymentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Farm$paymentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PaymentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   notifications<T extends Prisma.Farm$notificationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Farm$notificationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$NotificationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  syncOperations<T extends Prisma.Farm$syncOperationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Farm$syncOperationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SyncOperationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -3362,6 +3556,30 @@ export type Farm$notificationsArgs<ExtArgs extends runtime.Types.Extensions.Inte
   take?: number
   skip?: number
   distinct?: Prisma.NotificationScalarFieldEnum | Prisma.NotificationScalarFieldEnum[]
+}
+
+/**
+ * Farm.syncOperations
+ */
+export type Farm$syncOperationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the SyncOperation
+   */
+  select?: Prisma.SyncOperationSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the SyncOperation
+   */
+  omit?: Prisma.SyncOperationOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SyncOperationInclude<ExtArgs> | null
+  where?: Prisma.SyncOperationWhereInput
+  orderBy?: Prisma.SyncOperationOrderByWithRelationInput | Prisma.SyncOperationOrderByWithRelationInput[]
+  cursor?: Prisma.SyncOperationWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.SyncOperationScalarFieldEnum | Prisma.SyncOperationScalarFieldEnum[]
 }
 
 /**

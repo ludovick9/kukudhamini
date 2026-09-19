@@ -565,10 +565,6 @@ export type EnumHealthTaskStatusFieldUpdateOperationsInput = {
   set?: $Enums.HealthTaskStatus
 }
 
-export type NullableDateTimeFieldUpdateOperationsInput = {
-  set?: Date | string | null
-}
-
 export type HealthTaskCreateWithoutFarmInput = {
   id?: string
   title: string

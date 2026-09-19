@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "KukuDhamini | Your Broiler Farm Guardian",
+  title: "KukuDhamini",
   applicationName: "KukuDhamini",
   description: "Poultry management and chicken farming application",
   manifest: "/manifest.webmanifest",

@@ -119,6 +119,23 @@ model Farm {
   sales           Sale[]
   payments        Payment[]
   notifications   Notification[]
+  syncOperations   SyncOperation[]
+}
+
+model SyncOperation {
+  id          String   @id @default(cuid())
+  operationId String   @unique
+  farmId      String
+  entity      String
+  entityId    String
+  operation   String
+  payload     Json
+  createdAt   DateTime @default(now())
+  completedAt DateTime?
+  farm        Farm     @relation(fields: [farmId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@index([farmId, createdAt])
+  @@index([farmId, entity, entityId])
 }
 
 model FarmMembership {

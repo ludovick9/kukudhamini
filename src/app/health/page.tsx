@@ -5,5 +5,5 @@ import { getBatches, getFarmContext, getHealthSummary, getHealthTasks } from "@/
 export default async function HealthPage() {
 	const { farm, user } = await getFarmContext();
 	const [batches, tasks, summary] = await Promise.all([getBatches(farm.id), getHealthTasks(farm.id), getHealthSummary(farm.id)]);
-	return <AppShell farm={farm} user={user}><HealthManager batches={batches} tasks={tasks} summary={summary} /></AppShell>;
+	return <AppShell farm={farm} user={user}><HealthManager farmId={farm.id} batches={batches} tasks={tasks} summary={summary} /></AppShell>;
 }

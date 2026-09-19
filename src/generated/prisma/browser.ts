@@ -33,6 +33,11 @@ export type Session = Prisma.SessionModel
  */
 export type Farm = Prisma.FarmModel
 /**
+ * Model SyncOperation
+ * 
+ */
+export type SyncOperation = Prisma.SyncOperationModel
+/**
  * Model FarmMembership
  * 
  */

@@ -1,11 +1,34 @@
 "use client";
 
-import { Check, Languages, MapPin, Moon, Sun, UserRound, Laptop } from "lucide-react";
+import { Check, Languages, MapPin, Moon, RefreshCw, Sun, UserRound, Laptop } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 import type { Farm, User } from "@/domain/types";
 import { useLanguage } from "@/lib/i18n/language-provider";
 import { useTheme, type Theme } from "@/lib/theme-provider";
 import type { Language } from "@/lib/i18n/locales";
 import { Badge, Card, SectionHeading } from "@/components/ui";
+import { offlineDb } from "@/lib/offline/db";
+import { clearFarmOfflineData, hydrateOfflineData, syncPendingOperations } from "@/lib/offline/sync";
+
+export function OfflineCenter({ farmId }: { farmId: string }) {
+  const [online, setOnline] = useState(() => typeof navigator !== "undefined" && navigator.onLine);
+  const [pending, setPending] = useState(0);
+  const [failed, setFailed] = useState(0);
+  const [localRecords, setLocalRecords] = useState(0);
+  const [lastSynced, setLastSynced] = useState<string>();
+  const [message, setMessage] = useState("");
+  const refresh = useCallback(async () => {
+    const [queue, records] = await Promise.all([offlineDb.syncQueue.where("farmId").equals(farmId).toArray(), offlineDb.records.where("farmId").equals(farmId).toArray()]);
+    setPending(queue.length); setFailed(queue.filter((item) => item.status === "failed").length); setLocalRecords(records.filter((record) => !record.deletedAt).length);
+    setLastSynced(records.map((record) => record.lastSyncedAt).filter(Boolean).sort().at(-1));
+  }, [farmId]);
+  useEffect(() => { const timer = window.setTimeout(() => void refresh(), 0); const onlineHandler = () => setOnline(true); const offlineHandler = () => setOnline(false); window.addEventListener("online", onlineHandler); window.addEventListener("offline", offlineHandler); window.addEventListener("kukudhamini-sync-change", refresh); return () => { window.clearTimeout(timer); window.removeEventListener("online", onlineHandler); window.removeEventListener("offline", offlineHandler); window.removeEventListener("kukudhamini-sync-change", refresh); }; }, [refresh]);
+  async function sync() { setMessage("Syncing..."); const result = await syncPendingOperations(); await refresh(); setMessage(result.failed ? "Some changes need attention." : "All changes are up to date."); }
+  async function refreshData() { setMessage("Refreshing offline data..."); await hydrateOfflineData(farmId); await refresh(); setMessage("Offline data refreshed."); }
+  async function retry() { await offlineDb.syncQueue.where("farmId").equals(farmId).modify({ status: "pending", nextAttemptAt: new Date().toISOString() }); await sync(); }
+  async function clear() { if (pending && !window.confirm("Unsynchronized changes will be permanently removed from this device. Continue?")) return; await clearFarmOfflineData(farmId); await refresh(); setMessage("Offline data cleared."); }
+  return <Card><SectionHeading eyebrow="Device storage" title="Offline Center" /><p className="settings-description">Farm data saved here remains available when the connection is unreliable.</p><div className="settings-info-list"><div><strong>Connection</strong><span>{online ? "ONLINE" : "OFFLINE"}</span></div><div><strong>Last synchronization</strong><span>{lastSynced ? new Date(lastSynced).toLocaleString() : "Not synchronized"}</span></div><div><strong>Pending changes</strong><span>{pending}</span></div><div><strong>Failed changes</strong><span>{failed}</span></div><div><strong>Offline records</strong><span>{localRecords}</span></div></div>{message && <p className="settings-saved"><Check size={14} /> {message}</p>}<div className="heading-actions" style={{ marginTop: 16 }}><button className="button button-secondary" type="button" onClick={() => void refreshData()} disabled={!online}><RefreshCw size={15} /> Refresh offline data</button><button className="button button-secondary" type="button" onClick={() => void retry()} disabled={!online || !failed}>Retry failed syncs</button><button className="button button-primary" type="button" onClick={() => void sync()} disabled={!online || !pending}>Sync now</button><button className="button button-ghost" type="button" onClick={() => void clear()}>Clear offline data</button></div></Card>;
+}
 
 export function SettingsManager({ farm, user }: { farm: Farm; user: User }) {
   const { language, setLanguage, t } = useLanguage();

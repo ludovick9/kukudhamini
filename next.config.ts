@@ -10,7 +10,7 @@ const withSerwist = withSerwistInit({
   swDest: "public/sw.js",
   disable: process.env.NODE_ENV === "development",
   cacheOnNavigation: false,
-  globPublicPatterns: ["icons/**/*.png", "screenshots/**/*.png"],
+  globPublicPatterns: ["icons/**/*.png", "screenshots/**/*.png", "images/**/*", "offline.html"],
 });
 
 export default withSerwist(nextConfig);

@@ -400,6 +400,7 @@ export const ModelName = {
   User: 'User',
   Session: 'Session',
   Farm: 'Farm',
+  SyncOperation: 'SyncOperation',
   FarmMembership: 'FarmMembership',
   Batch: 'Batch',
   ExpenseCategory: 'ExpenseCategory',
@@ -428,7 +429,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "session" | "farm" | "farmMembership" | "batch" | "expenseCategory" | "supplier" | "expense" | "feedProduct" | "feedTransaction" | "healthTask" | "mortalityRecord" | "customer" | "sale" | "notification" | "payment"
+    modelProps: "user" | "session" | "farm" | "syncOperation" | "farmMembership" | "batch" | "expenseCategory" | "supplier" | "expense" | "feedProduct" | "feedTransaction" | "healthTask" | "mortalityRecord" | "customer" | "sale" | "notification" | "payment"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -651,6 +652,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.FarmCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.FarmCountAggregateOutputType> | number
+        }
+      }
+    }
+    SyncOperation: {
+      payload: Prisma.$SyncOperationPayload<ExtArgs>
+      fields: Prisma.SyncOperationFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.SyncOperationFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SyncOperationPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.SyncOperationFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SyncOperationPayload>
+        }
+        findFirst: {
+          args: Prisma.SyncOperationFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SyncOperationPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.SyncOperationFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SyncOperationPayload>
+        }
+        findMany: {
+          args: Prisma.SyncOperationFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SyncOperationPayload>[]
+        }
+        create: {
+          args: Prisma.SyncOperationCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SyncOperationPayload>
+        }
+        createMany: {
+          args: Prisma.SyncOperationCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.SyncOperationCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SyncOperationPayload>[]
+        }
+        delete: {
+          args: Prisma.SyncOperationDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SyncOperationPayload>
+        }
+        update: {
+          args: Prisma.SyncOperationUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SyncOperationPayload>
+        }
+        deleteMany: {
+          args: Prisma.SyncOperationDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.SyncOperationUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.SyncOperationUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SyncOperationPayload>[]
+        }
+        upsert: {
+          args: Prisma.SyncOperationUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SyncOperationPayload>
+        }
+        aggregate: {
+          args: Prisma.SyncOperationAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateSyncOperation>
+        }
+        groupBy: {
+          args: Prisma.SyncOperationGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SyncOperationGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.SyncOperationCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SyncOperationCountAggregateOutputType> | number
         }
       }
     }
@@ -1691,6 +1766,21 @@ export const FarmScalarFieldEnum = {
 export type FarmScalarFieldEnum = (typeof FarmScalarFieldEnum)[keyof typeof FarmScalarFieldEnum]
 
 
+export const SyncOperationScalarFieldEnum = {
+  id: 'id',
+  operationId: 'operationId',
+  farmId: 'farmId',
+  entity: 'entity',
+  entityId: 'entityId',
+  operation: 'operation',
+  payload: 'payload',
+  createdAt: 'createdAt',
+  completedAt: 'completedAt'
+} as const
+
+export type SyncOperationScalarFieldEnum = (typeof SyncOperationScalarFieldEnum)[keyof typeof SyncOperationScalarFieldEnum]
+
+
 export const FarmMembershipScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
@@ -1899,6 +1989,13 @@ export const SortOrder = {
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
 
 
+export const JsonNullValueInput = {
+  JsonNull: JsonNull
+} as const
+
+export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
+
+
 export const QueryMode = {
   default: 'default',
   insensitive: 'insensitive'
@@ -1913,6 +2010,15 @@ export const NullsOrder = {
 } as const
 
 export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
+
+
+export const JsonNullValueFilter = {
+  DbNull: DbNull,
+  JsonNull: JsonNull,
+  AnyNull: AnyNull
+} as const
+
+export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
 
 
 
@@ -1946,6 +2052,20 @@ export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel
  * Reference to a field of type 'DateTime[]'
  */
 export type ListDateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime[]'>
+    
+
+
+/**
+ * Reference to a field of type 'Json'
+ */
+export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
+    
+
+
+/**
+ * Reference to a field of type 'QueryMode'
+ */
+export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
     
 
 
@@ -2284,6 +2404,7 @@ export type GlobalOmitConfig = {
   user?: Prisma.UserOmit
   session?: Prisma.SessionOmit
   farm?: Prisma.FarmOmit
+  syncOperation?: Prisma.SyncOperationOmit
   farmMembership?: Prisma.FarmMembershipOmit
   batch?: Prisma.BatchOmit
   expenseCategory?: Prisma.ExpenseCategoryOmit

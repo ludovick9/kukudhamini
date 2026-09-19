@@ -11,6 +11,7 @@
 export type * from './models/User'
 export type * from './models/Session'
 export type * from './models/Farm'
+export type * from './models/SyncOperation'
 export type * from './models/FarmMembership'
 export type * from './models/Batch'
 export type * from './models/ExpenseCategory'

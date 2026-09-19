@@ -54,6 +54,7 @@ export const ModelName = {
   User: 'User',
   Session: 'Session',
   Farm: 'Farm',
+  SyncOperation: 'SyncOperation',
   FarmMembership: 'FarmMembership',
   Batch: 'Batch',
   ExpenseCategory: 'ExpenseCategory',
@@ -119,6 +120,21 @@ export const FarmScalarFieldEnum = {
 } as const
 
 export type FarmScalarFieldEnum = (typeof FarmScalarFieldEnum)[keyof typeof FarmScalarFieldEnum]
+
+
+export const SyncOperationScalarFieldEnum = {
+  id: 'id',
+  operationId: 'operationId',
+  farmId: 'farmId',
+  entity: 'entity',
+  entityId: 'entityId',
+  operation: 'operation',
+  payload: 'payload',
+  createdAt: 'createdAt',
+  completedAt: 'completedAt'
+} as const
+
+export type SyncOperationScalarFieldEnum = (typeof SyncOperationScalarFieldEnum)[keyof typeof SyncOperationScalarFieldEnum]
 
 
 export const FarmMembershipScalarFieldEnum = {
@@ -329,6 +345,13 @@ export const SortOrder = {
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
 
 
+export const JsonNullValueInput = {
+  JsonNull: JsonNull
+} as const
+
+export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
+
+
 export const QueryMode = {
   default: 'default',
   insensitive: 'insensitive'
@@ -343,4 +366,13 @@ export const NullsOrder = {
 } as const
 
 export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
+
+
+export const JsonNullValueFilter = {
+  DbNull: DbNull,
+  JsonNull: JsonNull,
+  AnyNull: AnyNull
+} as const
+
+export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
 
